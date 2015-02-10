@@ -36,7 +36,6 @@ public class ChatWindow extends JFrame implements ActionListener{
         this.chatSession.setWindow(this);
         this.chatSession.establishConnection();
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(300, 600));
 
         JPanel chatPanel = new JPanel();
@@ -102,8 +101,8 @@ public class ChatWindow extends JFrame implements ActionListener{
     }
 
     public static void main(String[] args){
-        ChatWindow server = new ChatWindow(new ChatSession("server", 4444, "Master"));
-        ChatWindow client = new ChatWindow(new ChatSession("192.168.0.103", 4444, "Slave"));
+        //ChatWindow server = new ChatWindow(new ChatSession("server", 4444, "Master"));
+        //ChatWindow client = new ChatWindow(new ChatSession("192.168.0.103", 4444, "Slave"));
     }
 
     @Override

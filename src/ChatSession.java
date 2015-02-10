@@ -42,7 +42,7 @@ public class ChatSession {
                 System.exit(-1);
             }
 
-            ChatServerDaemon serverDaemon = new ChatServerDaemon(serverSocket, this, window);
+            ChatServerDaemon serverDaemon = new ChatServerDaemon(serverSocket, this);
             serverDaemon.start();
 
             System.out.println("Hery");
@@ -107,6 +107,7 @@ public class ChatSession {
     }
 
     public void setConnection(ChatConnection connection) {
+
         this.connection = connection;
     }
 }

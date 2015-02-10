@@ -8,12 +8,10 @@ import java.net.Socket;
 public class ChatServerDaemon extends Thread{
     ServerSocket serverSocket;
     ChatSession session;
-    ChatWindow window;
 
-    public ChatServerDaemon(ServerSocket serverSocket, ChatSession session, ChatWindow window) {
+    public ChatServerDaemon(ServerSocket serverSocket, ChatSession session) {
         this.serverSocket = serverSocket;
         this.session = session;
-        this.window = window;
     }
     public void run() {
         while (true) {

@@ -80,12 +80,17 @@ public class ChatConnection extends Thread{
                 System.exit(1);
             }
         }
+    }
 
+    public Boolean disconnect(){
         try{
             in.close();
             out.close();
             socket.close();
-        }catch(Exception e){}
+            return true;
+        }catch(Exception e){
+            return false;
+        }
     }
 
 }
