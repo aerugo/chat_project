@@ -13,6 +13,14 @@ public class ChatConnectionManager {
         this.clientSocket = clientSocket;
     }
 
+    public void refuseConnection(){
+        try{
+            clientSocket.close();
+        }catch (Exception e){
+            System.out.println("Could not close socket! " + e);
+        }
+    }
+
     public ChatSession startNewSession(String newChatName){
         String chatName = newChatName;
         while(serverDaemon.subSessionHashMap.containsKey(chatName)){

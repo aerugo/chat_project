@@ -150,7 +150,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
             }
         }
         if(e.getSource() == disconnectButton){
-            if(!chatSession.getConnectionList().isEmpty()){
+            if(!chatSession.getConnectionList().isEmpty() & chatSession.connected){
                 chatSession.disconnectFromSession();
             }
             this.dispose();

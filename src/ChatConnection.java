@@ -33,7 +33,7 @@ public class ChatConnection extends Thread{
             }
         }catch(IOException e){
             System.out.println("read failed: " + e);
-            System.exit(1);
+            session.getWindow().printError("read failed: " + e);
         }
     }
 
@@ -56,6 +56,7 @@ public class ChatConnection extends Thread{
             in = new ObjectInputStream(this.socket.getInputStream());
         }catch(Exception e){
             System.out.println("getInputStream failed: " + e);
+            session.getWindow().printError("Connection not established");
             return;
         }
 

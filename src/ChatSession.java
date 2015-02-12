@@ -137,7 +137,6 @@ public class ChatSession {
     public void addConnection(ChatConnection connection) {
         this.connectionList.add(connection);
         userChooserModel.addElement(connection);
-        System.out.println(connection);
     }
 
     public ArrayList<ChatConnection> getConnectionList() {

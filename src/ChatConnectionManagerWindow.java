@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
  */
 public class ChatConnectionManagerWindow extends JFrame implements ActionListener{
     JButton startNewChat;
+    JButton refuseConnection;
     JTextField newChatName;
     JButton addToChat;
     JComboBox<Object> chatList;
@@ -19,17 +20,20 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
         startNewChat.addActionListener(this);
         addToChat = new JButton("Add to chat");
         addToChat.addActionListener(this);
+        refuseConnection = new JButton("Refuse connection");
+        refuseConnection.addActionListener(this);
         newChatName = new JTextField("New chat name");
         chatList = new JComboBox(connectionManager.getOpenSessions());
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setPreferredSize(new Dimension(300, 300));
 
-        setLayout(new GridLayout(2,2));
+        setLayout(new GridLayout(3,3));
         add(startNewChat);
         add(addToChat);
         add(newChatName);
         add(chatList);
+        add(refuseConnection);
         pack();
         setVisible(true);
     }
@@ -42,6 +46,10 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
         }
         if(e.getSource() == addToChat){
             connectionManager.connectToActiveSession(chatList.getSelectedItem().toString());
+            dispose();
+        }
+        if(e.getSource() == refuseConnection){
+            connectionManager.refuseConnection();
             dispose();
         }
     }
