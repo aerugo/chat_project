@@ -8,12 +8,13 @@ public class ChatMessage implements Serializable{
     private String messageXML;
     private String messageAuthor;
     private Color messageColor;
-    public Boolean disconnectFlag = false;
+    private String messageType;
 
-    public ChatMessage(String author, Color color, String message){
+    public ChatMessage(String author, Color color, String message, String type){
         this.messageAuthor = author;
         this.messageColor = color;
         this.messageXML = message;
+        this.messageType = type;
     }
 
     public String getMessageXML() {
@@ -27,4 +28,6 @@ public class ChatMessage implements Serializable{
     public Color getMessageColor() {
         return messageColor;
     }
+
+    public String getMessageType() {return messageType; }
 }

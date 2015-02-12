@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,10 +10,13 @@ import java.net.Socket;
 public class ChatConnection extends Thread{
     private Socket socket;
     private ChatSession session;
+    private String connectedUserName;
     private ObjectOutputStream out;
     private ObjectInputStream in;
     private ChatMessage message;
     private String echo;
+    private boolean done = false;
+
 
     public ChatConnection(Socket socket, ChatSession session){
         this.socket = socket;
@@ -24,6 +28,9 @@ public class ChatConnection extends Thread{
             out.writeObject(message);
             out.flush();
             System.out.println("Sent message");
+            if(message.getMessageType().equals("disconnect")){
+                this.done = true;
+            }
         }catch(IOException e){
             System.out.println("read failed: " + e);
             System.exit(1);
@@ -36,21 +43,20 @@ public class ChatConnection extends Thread{
 
     public void run(){
         // Vi kör tills vi är klara
-        boolean done = false;
 
         // Anslut läs- och skrivströmmarna
         try{
             out = new ObjectOutputStream(
                     this.socket.getOutputStream());
-        }catch(IOException e){
+        }catch(Exception e){
             System.out.println("getOutputStream failed: " + e);
-            System.exit(1);
+            return;
         }
         try{
             in = new ObjectInputStream(this.socket.getInputStream());
-        }catch(IOException e){
+        }catch(Exception e){
             System.out.println("getInputStream failed: " + e);
-            System.exit(1);
+            return;
         }
 
         // Kommer vi hit gick anslutningen bra.
@@ -58,39 +64,59 @@ public class ChatConnection extends Thread{
         System.out.println("Connection Established: "
                 + socket.getInetAddress());
 
-        while(!done){
+        sendMessage(new ChatMessage(session.getUserName(), Color.green, "has connected!", "message"));
+
+        while(!this.done){
             try{
-                System.out.println("pass0");
                 message = (ChatMessage) in.readObject();
-                System.out.println("pass1");
-                if(message.disconnectFlag){
-                    System.out.println("Client disconnect!");
-                    System.out.println("pass2");
-                    done = true;
-                }else{
-                    echo = "Recieved: ("
-                            + socket.getInetAddress()
-                            + ") ";
+                echo = "Recieved: ("
+                        + socket.getInetAddress()
+                        + ") ";
+                if(message.getMessageType().equals("message")) {
                     session.getWindow().printMessage(message);
-                    System.out.println(echo);
+
+                    if (session.getHostAddress().equals("server")) {
+                        session.sendMessageToAll(message);
+                    }
                 }
-                System.out.println("pass3");
+
+                System.out.println(echo);
+                connectedUserName = message.getMessageAuthor();
+
             }catch(Exception e){
-                System.out.println("read failed: " + e);
-                System.exit(1);
+                System.out.println( this + " read failed: " + e);
+                done = true;
             }
         }
+        System.out.println("disconnect");
+        disconnect();
+        System.out.println(this + " disconnected!");
     }
 
-    public Boolean disconnect(){
+    private void disconnect(){
         try{
             in.close();
             out.close();
             socket.close();
-            return true;
+            session.getConnectionList().remove(this);
         }catch(Exception e){
-            return false;
         }
     }
 
+    public void killConnection(){
+        done = true;
+    }
+
+    public String getConnectedUserName() {
+        return connectedUserName;
+    }
+
+    public void setConnectedUserName(String connectedUserName) {
+        this.connectedUserName = connectedUserName;
+    }
+
+    @Override
+    public String toString() {
+        return connectedUserName;
+    }
 }

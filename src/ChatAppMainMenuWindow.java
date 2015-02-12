@@ -7,27 +7,28 @@ import java.awt.event.ActionListener;
  * Created by hugiasgeirsson on 04/02/15.
  */
 
-public class ChatApp extends JFrame implements ActionListener{
+public class ChatAppMainMenuWindow extends JFrame implements ActionListener{
     JButton newClientButton;
     JButton newServerButton;
     JTextField hostAddress;
     JTextField connectionPort;
     JTextField userName;
+    JTextField chatName;
 
-    public ChatApp(){
+    public ChatAppMainMenuWindow(){
         super("Amazochat");
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(300, 300));
 
-        JPanel chatPanel = new JPanel();
         newClientButton = new JButton("New Client");
         newClientButton.addActionListener(this);
         newServerButton = new JButton("New Server");
         newServerButton.addActionListener(this);
-        hostAddress = new JTextField("Host IP");
-        connectionPort = new JTextField("Port");
+        hostAddress = new JTextField("localhost");
+        connectionPort = new JTextField("4444");
         userName = new JTextField("User");
+        chatName = new JTextField("MyChatName");
 
         setLayout(new GridLayout(3,2));
         add(newClientButton);
@@ -35,6 +36,7 @@ public class ChatApp extends JFrame implements ActionListener{
         add(hostAddress);
         add(connectionPort);
         add(userName);
+        add(chatName);
 
         pack();
         setVisible(true);
@@ -44,20 +46,22 @@ public class ChatApp extends JFrame implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == newClientButton){
-            ChatWindow client = new ChatWindow(new ChatSession(
+            new ChatWindow(new ChatSession(
                     hostAddress.getText(),
                     Integer.parseInt(connectionPort.getText()),
-                    userName.getText()));
+                    userName.getText(),
+                    chatName.getText()));
         }
         if(e.getSource() == newServerButton){
-            ChatWindow server = new ChatWindow(new ChatSession(
+            new ChatWindow(new ChatSession(
                     "server",
                     Integer.parseInt(connectionPort.getText()),
-                    userName.getText()));
+                    userName.getText(),
+                    chatName.getText()));
         }
     }
 
     public static void main(String[] args){
-        new ChatApp();
+        new ChatAppMainMenuWindow();
     }
 }

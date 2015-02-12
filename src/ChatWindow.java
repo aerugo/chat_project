@@ -3,15 +3,11 @@
  */
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.Style;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 
 public class ChatWindow extends JFrame implements ActionListener{
@@ -21,22 +17,25 @@ public class ChatWindow extends JFrame implements ActionListener{
     private JButton disconnectButton;
     private ChatSession chatSession;
     private JButton colorChooser;
-
-    public void setServerConnection(ChatConnection serverConnection) {
-        this.serverConnection = serverConnection;
-    }
-
-    private ChatConnection serverConnection = null;
-    private ChatConnection clientConnection = null;
+    private JButton kickUser;
+    private JComboBox userChooser;
 
     public ChatWindow(ChatSession session) {
         super("Amazochat");
 
         this.chatSession = session;
         this.chatSession.setWindow(this);
-        this.chatSession.establishConnection();
+
+        String windowType;
+        if(session.getHostAddress().equals("server")) {
+            windowType = "Server - ";
+        }else{
+            windowType = "Client - ";
+        }
+        this.setTitle(windowType + session.getChatName());
 
         setPreferredSize(new Dimension(300, 600));
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         JPanel chatPanel = new JPanel();
         displayPane = new JTextPane();
@@ -50,8 +49,12 @@ public class ChatWindow extends JFrame implements ActionListener{
         sendButton = new JButton("Send");
         sendButton.addActionListener(this);
         disconnectButton = new JButton("Disconnect");
+        disconnectButton.addActionListener(this);
         colorChooser = new JButton("Text color");
         colorChooser.addActionListener(this);
+        kickUser = new JButton("Kick user");
+        kickUser.addActionListener(this);
+        userChooser = new JComboBox(session.getUserChooserModel());
 
         add(chatPanel);
         chatPanel.setPreferredSize(new Dimension(300, 600));
@@ -71,6 +74,8 @@ public class ChatWindow extends JFrame implements ActionListener{
                         .addComponent(sendButton)
                         .addComponent(disconnectButton)
                         .addComponent(colorChooser)
+                        .addComponent(kickUser)
+                        .addComponent(userChooser)
         );
 
         layout.setHorizontalGroup(
@@ -81,10 +86,21 @@ public class ChatWindow extends JFrame implements ActionListener{
                         .addComponent(sendButton)
                         .addComponent(disconnectButton)
                         .addComponent(colorChooser)
+                        .addComponent(kickUser)
+                        .addComponent(userChooser)
         );
 
         pack();
         setVisible(true);
+
+        if(!session.getHostAddress().equals("server")){
+            kickUser.setVisible(false);
+            userChooser.setVisible(false);
+        }
+
+        if(!session.connected & !session.getHostAddress().equals("server")){
+            printError("Connection to server failed! Disconnect to close window and try different connection.");
+        }
     }
 
     public void printMessage(ChatMessage message){
@@ -100,9 +116,17 @@ public class ChatWindow extends JFrame implements ActionListener{
         }
     }
 
-    public static void main(String[] args){
-        //ChatWindow server = new ChatWindow(new ChatSession("server", 4444, "Master"));
-        //ChatWindow client = new ChatWindow(new ChatSession("192.168.0.103", 4444, "Slave"));
+    public void printError(String errorMessage){
+        StyledDocument chatLog = displayPane.getStyledDocument();
+        Style messageStyle = chatLog.addStyle("Message", null);
+        Style authorStyle = chatLog.addStyle("User", null);
+        messageStyle.addAttribute(StyleConstants.Foreground, Color.red);
+        try {
+            chatLog.insertString(chatLog.getLength(), "System" + ": ", authorStyle);
+            chatLog.insertString(chatLog.getLength(), errorMessage + "\n", messageStyle);
+        } catch (BadLocationException error) {
+            System.err.println("IndexOutOfBoundsException: " + error.getMessage());
+        }
     }
 
     @Override
@@ -110,8 +134,12 @@ public class ChatWindow extends JFrame implements ActionListener{
         if(e.getSource() == sendButton & !editorPane.getText().equals("")){
             ChatMessage myMessage = chatSession.inputToChatMessage(chatSession.getUserName(),
                     chatSession.getMessageColor(), editorPane.getText());
-            this.printMessage(myMessage);
-            chatSession.getConnection().sendMessage(myMessage);
+            if(chatSession.getHostAddress().equals("server")){
+                this.printMessage(myMessage);
+            }
+            if(!chatSession.getConnectionList().isEmpty()){
+                chatSession.sendMessageToAll(myMessage);
+            }
             editorPane.setText("");
         }
         if(e.getSource() == colorChooser){
@@ -123,6 +151,25 @@ public class ChatWindow extends JFrame implements ActionListener{
                 chatSession.setMessageColor(newColor);
             }
         }
+        if(e.getSource() == disconnectButton){
+            if(!chatSession.getConnectionList().isEmpty()){
+                chatSession.disconnectFromSession();
+            }
+            this.dispose();
+        }
+
+        if(e.getSource() == kickUser){
+            if(!chatSession.getConnectionList().isEmpty()){
+                ChatConnection connection = (ChatConnection) userChooser.getSelectedItem();
+                chatSession.sendMessageToAll(new ChatMessage(
+                        chatSession.getUserName(),
+                        Color.red,
+                        "has KICKED user " + connection.getConnectedUserName(),
+                        "message"));
+                connection.killConnection();
+            }
+        }
+
     }
 
 }
