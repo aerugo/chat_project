@@ -19,15 +19,17 @@ public class ChatSession {
     private ArrayList<ChatConnection> connectionList;
     private ChatServerDaemon serverDaemon;
     private DefaultComboBoxModel userChooserModel;
+    ChatMessageEncoderDecoder encoderDecoder;
     Boolean connected;
 
     public ChatSession(String hostAddress, int port, String userName, String chatName) {
         this.hostAddress = hostAddress;
         this.port = port;
         this.chatName = chatName;
+        this.encoderDecoder = new ChatMessageEncoderDecoder();
         userChooserModel = new DefaultComboBoxModel();
         setUserName(userName);
-        setMessageColor(Color.blue);
+        setMessageColor(new Color(0,0,255));
         connectionList = new ArrayList<ChatConnection>();
         startListening();
     }
@@ -38,7 +40,7 @@ public class ChatSession {
         this.chatName = chatName;
         userChooserModel = new DefaultComboBoxModel();
         setUserName(userName);
-        setMessageColor(Color.blue);
+        setMessageColor(new Color(0,0,255));
         connectionList = new ArrayList<ChatConnection>();
     }
 
@@ -78,9 +80,9 @@ public class ChatSession {
 
     public void disconnectFromSession(){
         ChatMessage disconnectMessage = new ChatMessage(userName,Color.red,"Disconnected...","disconnect");
-        sendMessageToAll(new ChatMessage(userName, Color.red, "disconnected", "message"));
+        sendMessageToAll(new ChatMessage(userName, new Color(255,0,0), "disconnected", "message"));
         if(hostAddress.equals("server")){
-            sendMessageToAll(new ChatMessage(userName, Color.red, "SERVER DISCONNECTED. Chat is no more!", "message"));
+            sendMessageToAll(new ChatMessage(userName, new Color(255,0,0), "SERVER DISCONNECTED. Chat is no more!", "message"));
         }
         sendMessageToAll(disconnectMessage);
         if(hostAddress.equals("server")){

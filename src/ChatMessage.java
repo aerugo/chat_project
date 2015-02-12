@@ -5,7 +5,7 @@ import java.io.Serializable;
  * Created by hugiasgeirsson on 08/02/15.
  */
 public class ChatMessage implements Serializable{
-    private String messageXML;
+    private String messageString;
     private String messageAuthor;
     private Color messageColor;
     private String messageType;
@@ -13,12 +13,12 @@ public class ChatMessage implements Serializable{
     public ChatMessage(String author, Color color, String message, String type){
         this.messageAuthor = author;
         this.messageColor = color;
-        this.messageXML = message;
+        this.messageString = message;
         this.messageType = type;
     }
 
-    public String getMessageXML() {
-        return messageXML;
+    public String getMessageString() {
+        return messageString;
     }
 
     public String getMessageAuthor() {

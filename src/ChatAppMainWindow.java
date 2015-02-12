@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
  * Created by hugiasgeirsson on 04/02/15.
  */
 
-public class ChatAppMainMenuWindow extends JFrame implements ActionListener{
+public class ChatAppMainWindow extends JFrame implements ActionListener{
     JButton newClientButton;
     JButton newServerButton;
     JTextField hostAddress;
@@ -15,7 +15,7 @@ public class ChatAppMainMenuWindow extends JFrame implements ActionListener{
     JTextField userName;
     JTextField chatName;
 
-    public ChatAppMainMenuWindow(){
+    public ChatAppMainWindow(){
         super("Amazochat");
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -62,6 +62,6 @@ public class ChatAppMainMenuWindow extends JFrame implements ActionListener{
     }
 
     public static void main(String[] args){
-        new ChatAppMainMenuWindow();
+        new ChatAppMainWindow();
     }
 }

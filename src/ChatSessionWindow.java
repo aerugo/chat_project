@@ -108,7 +108,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         messageStyle.addAttribute(StyleConstants.Foreground, message.getMessageColor());
         try {
             chatLog.insertString(chatLog.getLength(), message.getMessageAuthor() + ": ", authorStyle);
-            chatLog.insertString(chatLog.getLength(), message.getMessageXML() + "\n", messageStyle);
+            chatLog.insertString(chatLog.getLength(), message.getMessageString() + "\n", messageStyle);
         } catch (BadLocationException error) {
             System.err.println("IndexOutOfBoundsException: " + error.getMessage());
         }
@@ -118,7 +118,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         StyledDocument chatLog = displayPane.getStyledDocument();
         Style messageStyle = chatLog.addStyle("Message", null);
         Style authorStyle = chatLog.addStyle("User", null);
-        messageStyle.addAttribute(StyleConstants.Foreground, Color.red);
+        messageStyle.addAttribute(StyleConstants.Foreground, new Color(255,0,0));
         try {
             chatLog.insertString(chatLog.getLength(), "System" + ": ", authorStyle);
             chatLog.insertString(chatLog.getLength(), errorMessage + "\n", messageStyle);
@@ -161,7 +161,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
                 ChatConnection connection = (ChatConnection) userChooser.getSelectedItem();
                 chatSession.sendMessageToAll(new ChatMessage(
                         chatSession.getUserName(),
-                        Color.red,
+                        new Color(255,0,0),
                         "has KICKED user " + connection.getConnectedUserName(),
                         "message"));
                 connection.killConnection();

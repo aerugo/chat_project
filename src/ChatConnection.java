@@ -1,29 +1,27 @@
 import java.awt.*;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 
 /**
  * Created by hugiasgeirsson on 10/02/15.
  */
 public class ChatConnection extends Thread{
-    private Socket socket;
+    private Socket clientSocket;
     private ChatSession session;
     private String connectedUserName;
     private ObjectOutputStream out;
     private ObjectInputStream in;
-    private ChatMessage message;
-    private String echo;
     private boolean done = false;
+    private boolean primitiveConnection;
 
 
-    public ChatConnection(Socket socket, ChatSession session){
-        this.socket = socket;
+    public ChatConnection(Socket clientSocket, ChatSession session){
+        this.clientSocket = clientSocket;
         this.session = session;
     }
 
     public void sendMessage(ChatMessage message){
+        String xmlMessage = session.encoderDecoder.chatMessageToXML(message);
         try{
             out.writeObject(message);
             out.flush();
@@ -37,23 +35,21 @@ public class ChatConnection extends Thread{
         }
     }
 
-    public void setSocket(Socket socket) {
-        this.socket = socket;
-    }
-
     public void run(){
-        // Vi kör tills vi är klara
 
-        // Anslut läs- och skrivströmmarna
+        // Connect handshake streams
+
+
+        // Connect object input/output to Amazochat-client
         try{
             out = new ObjectOutputStream(
-                    this.socket.getOutputStream());
+                    this.clientSocket.getOutputStream());
         }catch(Exception e){
             System.out.println("getOutputStream failed: " + e);
             return;
         }
         try{
-            in = new ObjectInputStream(this.socket.getInputStream());
+            in = new ObjectInputStream(this.clientSocket.getInputStream());
         }catch(Exception e){
             System.out.println("getInputStream failed: " + e);
             session.getWindow().printError("Connection not established");
@@ -63,15 +59,15 @@ public class ChatConnection extends Thread{
         // Kommer vi hit gick anslutningen bra.
         // Vi skriver ut IP-nummret från klienten
         System.out.println("Connection Established: "
-                + socket.getInetAddress());
+                + clientSocket.getInetAddress());
 
-        sendMessage(new ChatMessage(session.getUserName(), Color.green, "has connected!", "message"));
+        sendMessage(new ChatMessage(session.getUserName(), new Color(0, 255, 0), "has connected!", "message"));
 
         while(!this.done){
             try{
-                message = (ChatMessage) in.readObject();
-                echo = "Recieved: ("
-                        + socket.getInetAddress()
+                ChatMessage message = (ChatMessage) in.readObject();
+                String echo = "Recieved: ("
+                        + clientSocket.getInetAddress()
                         + ") ";
                 if(message.getMessageType().equals("message")) {
                     session.getWindow().printMessage(message);
@@ -98,7 +94,7 @@ public class ChatConnection extends Thread{
         try{
             in.close();
             out.close();
-            socket.close();
+            clientSocket.close();
             session.getConnectionList().remove(this);
         }catch(Exception e){
         }
