@@ -6,11 +6,11 @@ import java.awt.event.ActionListener;
 /**
  * Created by hugiasgeirsson on 11/02/15.
  */
-public class ChatServerWindow extends JFrame implements ActionListener{
+public class ChatServerDaemonWindow extends JFrame implements ActionListener{
     JButton disconnectServer;
     ChatServerDaemon serverDaemon;
 
-    public ChatServerWindow(ChatServerDaemon serverDaemon){
+    public ChatServerDaemonWindow(ChatServerDaemon serverDaemon){
         this.serverDaemon = serverDaemon;
         this.setTitle("Server listening on " + serverDaemon.serverSocket.getLocalPort());
         disconnectServer = new JButton("Disconnect server");

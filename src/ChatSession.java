@@ -15,7 +15,7 @@ public class ChatSession {
     private String hostAddress;
     private int port;
     private ServerSocket serverSocket;
-    private ChatWindow window;
+    private ChatSessionWindow window;
     private ArrayList<ChatConnection> connectionList;
     private ChatServerDaemon serverDaemon;
     private DefaultComboBoxModel userChooserModel;
@@ -58,7 +58,7 @@ public class ChatSession {
 
             serverDaemon = new ChatServerDaemon(serverSocket, this);
             serverDaemon.start();
-            new ChatServerWindow(serverDaemon);
+            new ChatServerDaemonWindow(serverDaemon);
             connected = true;
 
         } else{
@@ -125,11 +125,11 @@ public class ChatSession {
             return null;}
     }
 
-    public ChatWindow getWindow() {
+    public ChatSessionWindow getWindow() {
         return window;
     }
 
-    public void setWindow(ChatWindow window) {
+    public void setWindow(ChatSessionWindow window) {
         this.window = window;
     }
 

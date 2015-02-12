@@ -46,14 +46,14 @@ public class ChatAppMainMenuWindow extends JFrame implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == newClientButton){
-            new ChatWindow(new ChatSession(
+            new ChatSessionWindow(new ChatSession(
                     hostAddress.getText(),
                     Integer.parseInt(connectionPort.getText()),
                     userName.getText(),
                     chatName.getText()));
         }
         if(e.getSource() == newServerButton){
-            new ChatWindow(new ChatSession(
+            new ChatSessionWindow(new ChatSession(
                     "server",
                     Integer.parseInt(connectionPort.getText()),
                     userName.getText(),

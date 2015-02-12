@@ -37,7 +37,7 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == startNewChat){
-            new ChatWindow(connectionManager.startNewSession(newChatName.getText()));
+            new ChatSessionWindow(connectionManager.startNewSession(newChatName.getText()));
             dispose();
         }
         if(e.getSource() == addToChat){

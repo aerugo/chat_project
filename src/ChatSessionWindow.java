@@ -6,11 +6,9 @@ import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 
 
-public class ChatWindow extends JFrame implements ActionListener{
+public class ChatSessionWindow extends JFrame implements ActionListener{
     private JTextPane displayPane;
     private JTextArea editorPane;
     private JButton sendButton;
@@ -20,7 +18,7 @@ public class ChatWindow extends JFrame implements ActionListener{
     private JButton kickUser;
     private JComboBox userChooser;
 
-    public ChatWindow(ChatSession session) {
+    public ChatSessionWindow(ChatSession session) {
         super("Amazochat");
 
         this.chatSession = session;
@@ -144,7 +142,7 @@ public class ChatWindow extends JFrame implements ActionListener{
         }
         if(e.getSource() == colorChooser){
             Color newColor = JColorChooser.showDialog(
-                    ChatWindow.this,
+                    ChatSessionWindow.this,
                     "Choose Text Color",
                     chatSession.getMessageColor());
             if(newColor != null){

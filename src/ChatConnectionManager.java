@@ -11,7 +11,6 @@ public class ChatConnectionManager {
     public ChatConnectionManager(ChatServerDaemon serverDaemon, Socket clientSocket){
         this.serverDaemon = serverDaemon;
         this.clientSocket = clientSocket;
-        Object[] openSessions = serverDaemon.subSessionHashMap.keySet().toArray();
     }
 
     public ChatSession startNewSession(String newChatName){
