@@ -9,8 +9,9 @@ public class ChatConnection extends Thread{
     private Socket clientSocket;
     private ChatSession session;
     private String connectedUserName;
-    private ObjectOutputStream out;
-    private ObjectInputStream in;
+    private boolean connected = false;
+    private PrintWriter out;
+    private BufferedReader in;
     private boolean done = false;
     private boolean primitiveConnection;
 
@@ -23,13 +24,12 @@ public class ChatConnection extends Thread{
     public void sendMessage(ChatMessage message){
         String xmlMessage = session.encoderDecoder.chatMessageToXML(message);
         try{
-            out.writeObject(message);
-            out.flush();
+            out.println(xmlMessage);
             System.out.println("Sent message");
             if(message.getMessageType().equals("disconnect")){
                 this.done = true;
             }
-        }catch(IOException e){
+        }catch(Exception e){
             System.out.println("read failed: " + e);
             session.getWindow().printError("read failed: " + e);
         }
@@ -37,19 +37,15 @@ public class ChatConnection extends Thread{
 
     public void run(){
 
-        // Connect handshake streams
-
-
-        // Connect object input/output to Amazochat-client
         try{
-            out = new ObjectOutputStream(
-                    this.clientSocket.getOutputStream());
+            out = new PrintWriter(clientSocket.getOutputStream(), true);
         }catch(Exception e){
             System.out.println("getOutputStream failed: " + e);
             return;
         }
+
         try{
-            in = new ObjectInputStream(this.clientSocket.getInputStream());
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         }catch(Exception e){
             System.out.println("getInputStream failed: " + e);
             session.getWindow().printError("Connection not established");
@@ -65,10 +61,18 @@ public class ChatConnection extends Thread{
 
         while(!this.done){
             try{
-                ChatMessage message = (ChatMessage) in.readObject();
+                String buffer = in.readLine();
+                System.out.println(buffer);
+                if(buffer.startsWith("<message")){
+                    while (!buffer.endsWith("</message>")){
+                        buffer = buffer + in.readLine();
+                    }
+                }
+                ChatMessage message = session.encoderDecoder.xmlToChatMessage(buffer);
                 String echo = "Recieved: ("
                         + clientSocket.getInetAddress()
                         + ") ";
+
                 if(message.getMessageType().equals("message")) {
                     session.getWindow().printMessage(message);
 
@@ -78,9 +82,15 @@ public class ChatConnection extends Thread{
                 }
 
                 System.out.println(echo);
-                connectedUserName = message.getMessageAuthor();
+                try{
+                    connectedUserName = message.getMessageAuthor();
+                }catch(NullPointerException e){
+                    System.out.println("No name available");
+                    connectedUserName = "Unknown";
+                }
 
-            }catch(Exception e){
+
+            }catch(IOException e){
                 System.out.println( this + " read failed: " + e);
                 done = true;
             }

@@ -21,17 +21,17 @@ public class ChatConnectionManager {
         }
     }
 
-    public ChatSession startNewSession(String newChatName){
+    public void startNewSession(String newChatName) {
         String chatName = newChatName;
-        while(serverDaemon.subSessionHashMap.containsKey(chatName)){
+        while (serverDaemon.subSessionHashMap.containsKey(chatName)) {
             chatName = "New " + chatName;
         }
         chosenSession = new ChatSession(serverDaemon.serverSocket, serverDaemon.session.getUserName(), chatName);
-        serverDaemon.subSessionHashMap.put(chatName, chosenSession);
+        new ChatSessionWindow(chosenSession);
         ChatConnection serverConnection = new ChatConnection(clientSocket, chosenSession);
         serverConnection.start();
+        serverDaemon.subSessionHashMap.put(chatName, chosenSession);
         chosenSession.addConnection(serverConnection);
-        return chosenSession;
     }
 
     public void connectToActiveSession(String sessionName){

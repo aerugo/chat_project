@@ -12,10 +12,20 @@ public class ChatMessageEncoderDecoder {
         String message = chatMessage.getMessageString();
         String author = chatMessage.getMessageAuthor();
         Color color = chatMessage.getMessageColor();
-        return "<message sender=\"" + author + "\">" +
-                "<text color=" + rgbToHex(color) + "\">" +
-                message +
-                "</text></message>";
+        if(chatMessage.getMessageType().equals("disconnect")){
+            return "<message sender=\"" + author + "\">" +
+                    "<disconnect />" +
+                    "</message>";
+        } else if(chatMessage.getMessageType().equals("request")) {
+            return "<request sender=\"" + author + "\">" +
+                    "<disconnect />" +
+                    "</message>";
+        }else {
+            return "<message sender=\"" + author + "\">" +
+                    "<text color=" + rgbToHex(color) + "\">" +
+                    message +
+                    "</text></message>";
+        }
     }
 
     public ChatMessage xmlToChatMessage(String XML){
@@ -24,13 +34,53 @@ public class ChatMessageEncoderDecoder {
         Color color = new Color(0,0,0);
         String message = "Error: No message retrieved.";
         String messageType = "message";
+        String requestAnswer = "";
+
+        // Check if message is request and get request message
+        if(XML.startsWith("<request")) {
+            Scanner requestParser = new Scanner(XML);
+            requestParser.useDelimiter("<request\\s|</request>");
+
+            String next = "";
+            if (requestParser.hasNext()) {
+                next = requestParser.next();
+                String[] splitMessage = next.split("reply=\"");
+                if (splitMessage.length > 1) {
+                    requestAnswer = splitMessage[1].split("\"")[0];
+                    requestAnswer = "reply=\"" + requestAnswer + "\"";
+                }
+            }
+
+            Scanner requestMessageParser = new Scanner(XML);
+            requestMessageParser.useDelimiter("<|>");
+            if(requestMessageParser.hasNext()) {
+                next = "";
+                while(!next.startsWith("message")){
+                    next = requestMessageParser.next();
+                }
+                while (!next.startsWith("text")){
+                    next = requestMessageParser.next();
+                }
+                requestMessageParser.useDelimiter("\\Z");
+                next = requestMessageParser.next();
+                if(next.startsWith(">")){
+                    next = next.substring(1);
+                }
+                if(next.endsWith("</request>")){
+                    next = next.substring(0, next.length()-10);
+                }
+                message = next;
+            }
+            return new ChatMessage(message, requestAnswer);
+        }
 
         // Get author name
         Scanner authorParser = new Scanner(XML);
         authorParser.useDelimiter("<message\\s|</message>");
 
+        String next = "";
         if (authorParser.hasNext()){
-            String next = authorParser.next();
+            next = authorParser.next();
             String[] splitMessage = next.split("sender=\"");
             if(splitMessage.length > 1){
                 author = splitMessage[1].split("\"")[0];
@@ -39,17 +89,21 @@ public class ChatMessageEncoderDecoder {
             }
         }
 
+        // Get message type
+        if(next.endsWith("<disconnect />")){
+            return new ChatMessage(author, color, "has disconnected...", "disconnect");
+        }
+
         // Get color
         Scanner colorParser = new Scanner(XML);
         colorParser.useDelimiter("<text\\s|</text>");
         String hexColor;
-        String next = "";
+        next = "";
         while (!next.startsWith("color=") & colorParser.hasNext()){
             next = colorParser.next();
         }
         String[] splitMessage = next.split("color=\"");
         hexColor = splitMessage[0].split("\"")[0].substring(6);
-        System.out.println(hexColor);
         if(hexColor.length()==7 & hexColor.startsWith("#")){
             color = Color.decode(hexColor);
         }

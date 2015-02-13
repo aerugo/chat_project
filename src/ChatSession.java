@@ -38,6 +38,8 @@ public class ChatSession {
         this.hostAddress = "server";
         this.port = serverSocket.getLocalPort();
         this.chatName = chatName;
+        this.encoderDecoder = new ChatMessageEncoderDecoder();
+        this.connected = true;
         userChooserModel = new DefaultComboBoxModel();
         setUserName(userName);
         setMessageColor(new Color(0,0,255));
