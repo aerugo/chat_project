@@ -5,17 +5,21 @@ import java.net.Socket;
  */
 public class ChatConnectionManager {
     private ChatServerDaemon serverDaemon;
+    private ChatSession temporarySession;
     private ChatSession chosenSession;
-    private Socket clientSocket;
+    private ChatConnection serverConnection;
 
     public ChatConnectionManager(ChatServerDaemon serverDaemon, Socket clientSocket){
         this.serverDaemon = serverDaemon;
-        this.clientSocket = clientSocket;
+        this.temporarySession = new ChatSession(serverDaemon.serverSocket, serverDaemon.session.getUserName(), "temp");
+        this.serverConnection = new ChatConnection(clientSocket, temporarySession);
+        this.serverConnection.start();
     }
 
     public void refuseConnection(){
         try{
-            clientSocket.close();
+            serverConnection.sendMessage(new ChatMessage("Sorry","no"));
+            serverConnection.killConnection();
         }catch (Exception e){
             System.out.println("Could not close socket! " + e);
         }
@@ -28,21 +32,25 @@ public class ChatConnectionManager {
         }
         chosenSession = new ChatSession(serverDaemon.serverSocket, serverDaemon.session.getUserName(), chatName);
         new ChatSessionWindow(chosenSession);
-        ChatConnection serverConnection = new ChatConnection(clientSocket, chosenSession);
-        serverConnection.start();
         serverDaemon.subSessionHashMap.put(chatName, chosenSession);
         chosenSession.addConnection(serverConnection);
+        serverConnection.setSession(chosenSession);
+        serverConnection.sendMessage(new ChatMessage("Ok!","yes"));
     }
 
     public void connectToActiveSession(String sessionName){
         chosenSession = serverDaemon.subSessionHashMap.get(sessionName);
-        ChatConnection serverConnection = new ChatConnection(clientSocket, chosenSession);
-        serverConnection.start();
         chosenSession.addConnection(serverConnection);
+        serverConnection.setSession(chosenSession);
+        serverConnection.sendMessage(new ChatMessage("Ok!","yes"));
     }
 
     public Object[] getOpenSessions(){
         Object[] openSessions = serverDaemon.subSessionHashMap.keySet().toArray();
         return openSessions;
+    }
+
+    public ChatConnection getServerConnection() {
+        return serverConnection;
     }
 }

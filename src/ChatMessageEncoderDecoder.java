@@ -12,14 +12,15 @@ public class ChatMessageEncoderDecoder {
         String message = chatMessage.getMessageString();
         String author = chatMessage.getMessageAuthor();
         Color color = chatMessage.getMessageColor();
+        String requestAnswer = chatMessage.getRequestAnswer();
         if(chatMessage.getMessageType().equals("disconnect")){
             return "<message sender=\"" + author + "\">" +
                     "<disconnect />" +
                     "</message>";
         } else if(chatMessage.getMessageType().equals("request")) {
-            return "<request sender=\"" + author + "\">" +
-                    "<disconnect />" +
-                    "</message>";
+            return "<request reply=\"" + requestAnswer + "\">" +
+                    message +
+                    "</request>";
         }else {
             return "<message sender=\"" + author + "\">" +
                     "<text color=" + rgbToHex(color) + "\">" +
@@ -47,7 +48,6 @@ public class ChatMessageEncoderDecoder {
                 String[] splitMessage = next.split("reply=\"");
                 if (splitMessage.length > 1) {
                     requestAnswer = splitMessage[1].split("\"")[0];
-                    requestAnswer = "reply=\"" + requestAnswer + "\"";
                 }
             }
 
@@ -55,10 +55,7 @@ public class ChatMessageEncoderDecoder {
             requestMessageParser.useDelimiter("<|>");
             if(requestMessageParser.hasNext()) {
                 next = "";
-                while(!next.startsWith("message")){
-                    next = requestMessageParser.next();
-                }
-                while (!next.startsWith("text")){
+                while(!next.startsWith("request")){
                     next = requestMessageParser.next();
                 }
                 requestMessageParser.useDelimiter("\\Z");
@@ -74,65 +71,68 @@ public class ChatMessageEncoderDecoder {
             return new ChatMessage(message, requestAnswer);
         }
 
-        // Get author name
-        Scanner authorParser = new Scanner(XML);
-        authorParser.useDelimiter("<message\\s|</message>");
+        //Check if message type and get message
+        if(XML.startsWith("<message")) {
+            // Get author name
+            Scanner authorParser = new Scanner(XML);
+            authorParser.useDelimiter("<message\\s|</message>");
 
-        String next = "";
-        if (authorParser.hasNext()){
-            next = authorParser.next();
-            String[] splitMessage = next.split("sender=\"");
-            if(splitMessage.length > 1){
-                author = splitMessage[1].split("\"")[0];
-            } else{
-                author = splitMessage[0].split("\"")[0];
+            String next = "";
+            if (authorParser.hasNext()) {
+                next = authorParser.next();
+                String[] splitMessage = next.split("sender=\"");
+                if (splitMessage.length > 1) {
+                    author = splitMessage[1].split("\"")[0];
+                } else {
+                    author = splitMessage[0].split("\"")[0];
+                }
             }
-        }
 
-        // Get message type
-        if(next.endsWith("<disconnect />")){
-            return new ChatMessage(author, color, "has disconnected...", "disconnect");
-        }
+            // Get message type
+            if (next.endsWith("<disconnect />")) {
+                return new ChatMessage(author, color, "has disconnected...", "disconnect");
+            }
 
-        // Get color
-        Scanner colorParser = new Scanner(XML);
-        colorParser.useDelimiter("<text\\s|</text>");
-        String hexColor;
-        next = "";
-        while (!next.startsWith("color=") & colorParser.hasNext()){
-            next = colorParser.next();
-        }
-        String[] splitMessage = next.split("color=\"");
-        hexColor = splitMessage[0].split("\"")[0].substring(6);
-        if(hexColor.length()==7 & hexColor.startsWith("#")){
-            color = Color.decode(hexColor);
-        }
-
-        // Get message
-        Scanner messageParser = new Scanner(XML);
-        messageParser.useDelimiter("<|>");
-        if(messageParser.hasNext()) {
+            // Get color
+            Scanner colorParser = new Scanner(XML);
+            colorParser.useDelimiter("<text\\s|</text>");
+            String hexColor;
             next = "";
-            while(!next.startsWith("message")){
-                next = messageParser.next();
+            while (!next.startsWith("color=") & colorParser.hasNext()) {
+                next = colorParser.next();
             }
-            while (!next.startsWith("text")){
-                next = messageParser.next();
+            String[] splitMessage = next.split("color=\"");
+            hexColor = splitMessage[0].split("\"")[0].substring(6);
+            if (hexColor.length() == 7 & hexColor.startsWith("#")) {
+                color = Color.decode(hexColor);
             }
-            messageParser.useDelimiter("\\Z");
-            next = messageParser.next();
-            if(next.startsWith(">")){
-                next = next.substring(1);
-            }
-            if(next.endsWith("</message>")){
-                next = next.substring(0, next.length()-10);
-            }
-            if(next.endsWith("</text>")){
-                next = next.substring(0, next.length()-7);
-            }
-            message = next;
-        }
 
+            // Get message
+            Scanner messageParser = new Scanner(XML);
+            messageParser.useDelimiter("<|>");
+            if (messageParser.hasNext()) {
+                next = "";
+                while (!next.startsWith("message")) {
+                    next = messageParser.next();
+                }
+                while (!next.startsWith("text")) {
+                    next = messageParser.next();
+                }
+                messageParser.useDelimiter("\\Z");
+                next = messageParser.next();
+                if (next.startsWith(">")) {
+                    next = next.substring(1);
+                }
+                if (next.endsWith("</message>")) {
+                    next = next.substring(0, next.length() - 10);
+                }
+                if (next.endsWith("</text>")) {
+                    next = next.substring(0, next.length() - 7);
+                }
+                message = next;
+            }
+            return new ChatMessage(author, color, message, messageType);
+        }
         return new ChatMessage(author, color, message, messageType);
     }
 

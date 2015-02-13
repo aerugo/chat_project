@@ -114,6 +114,10 @@ public class ChatSession {
         return chatName;
     }
 
+    public void setChatName(String chatName) {
+        this.chatName = chatName;
+    }
+
     public String getHostAddress() {
         return hostAddress;
     }

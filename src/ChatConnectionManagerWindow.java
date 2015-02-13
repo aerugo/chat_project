@@ -36,6 +36,8 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
         add(refuseConnection);
         pack();
         setVisible(true);
+
+        this.setTitle(connectionManager.getServerConnection().getRequestMessage());
     }
 
     @Override

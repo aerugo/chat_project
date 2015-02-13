@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by hugiasgeirsson on 10/02/15.
@@ -9,16 +11,15 @@ public class ChatConnection extends Thread{
     private Socket clientSocket;
     private ChatSession session;
     private String connectedUserName;
-    private boolean connected = false;
     private PrintWriter out;
     private BufferedReader in;
-    private boolean done = false;
-    private boolean primitiveConnection;
+    private boolean done;
 
 
     public ChatConnection(Socket clientSocket, ChatSession session){
         this.clientSocket = clientSocket;
         this.session = session;
+        this.done = false;
     }
 
     public void sendMessage(ChatMessage message){
@@ -44,6 +45,8 @@ public class ChatConnection extends Thread{
             return;
         }
 
+        if(session.getHostAddress().equals("server")){System.out.println("Server out ok");}
+
         try{
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         }catch(Exception e){
@@ -52,49 +55,70 @@ public class ChatConnection extends Thread{
             return;
         }
 
+        if(session.getHostAddress().equals("server")){System.out.println("Server in ok");}
+
         // Kommer vi hit gick anslutningen bra.
         // Vi skriver ut IP-nummret från klienten
         System.out.println("Connection Established: "
                 + clientSocket.getInetAddress());
 
-        sendMessage(new ChatMessage(session.getUserName(), new Color(0, 255, 0), "has connected!", "message"));
+        // Wait for request message
 
-        while(!this.done){
-            try{
-                String buffer = in.readLine();
-                System.out.println(buffer);
-                if(buffer.startsWith("<message")){
-                    while (!buffer.endsWith("</message>")){
-                        buffer = buffer + in.readLine();
-                    }
-                }
-                ChatMessage message = session.encoderDecoder.xmlToChatMessage(buffer);
-                String echo = "Recieved: ("
-                        + clientSocket.getInetAddress()
-                        + ") ";
+        if(session.getHostAddress().equals("server")){System.out.println("Server established");}
 
-                if(message.getMessageType().equals("message")) {
-                    session.getWindow().printMessage(message);
+        //Client request pending
+        if(!session.getHostAddress().equals("server")) {
+            sendMessage(new ChatMessage(session.getUserName() + "Wants to connect!", "request"));
+            boolean pending = true;
+            while (pending) {
 
-                    if (session.getHostAddress().equals("server")) {
-                        session.sendMessageToAll(message);
-                    }
+                ChatMessage message = getMessageFromBuffer("request");
+
+                if (message.getRequestAnswer().equals("yes")) {
+                    sendMessage(new ChatMessage(session.getUserName(), new Color(0, 255, 0), "has connected!", "message"));
+                } else {
+                    done = true;
                 }
 
-                System.out.println(echo);
-                try{
-                    connectedUserName = message.getMessageAuthor();
-                }catch(NullPointerException e){
-                    System.out.println("No name available");
-                    connectedUserName = "Unknown";
-                }
-
-
-            }catch(IOException e){
-                System.out.println( this + " read failed: " + e);
-                done = true;
+                pending = false;
             }
         }
+
+        if(session.getHostAddress().equals("server")){System.out.println("Server prepares to listen");}
+
+        //Listening for messages and username updates
+
+        while(!done){
+
+            if(!session.getHostAddress().equals("server")){System.out.println("Client running");}
+            if(session.getHostAddress().equals("server")){System.out.println("Server running");}
+
+            ChatMessage message = getMessageFromBuffer("message");
+
+            String echo = "Recieved: ("
+                    + clientSocket.getInetAddress()
+                    + ") ";
+
+            if(message.getMessageType().equals("message")) {
+                session.getWindow().printMessage(message);
+
+                if (session.getHostAddress().equals("server")) {
+                    session.sendMessageToAll(message);
+                }
+            }
+
+            System.out.println(echo);
+
+            try{
+                connectedUserName = message.getMessageAuthor();
+            }catch(NullPointerException e){
+                System.out.println("No name available");
+                connectedUserName = "Unknown";
+            }
+        }
+
+        // Reach here when connection is done
+
         System.out.println("disconnect");
         disconnect();
         System.out.println(this + " disconnected!");
@@ -110,6 +134,26 @@ public class ChatConnection extends Thread{
         }
     }
 
+    private ChatMessage getMessageFromBuffer(String messageType){
+        String buffer = "";
+        ChatMessage message;
+        try {
+            while (!buffer.startsWith("<"+messageType)){
+                buffer = in.readLine();
+            }
+            System.out.println(buffer);
+            while (!buffer.endsWith("</"+messageType+">")) {
+                buffer = buffer + in.readLine();
+            }
+            message = session.encoderDecoder.xmlToChatMessage(buffer);
+        }catch(IOException e){
+            System.out.println( this + " read failed: " + e);
+            message = new ChatMessage("System",new Color(255,0,0),"Could not get message...","message");
+        }
+
+        return message;
+    }
+
     public void killConnection(){
         done = true;
     }
@@ -118,8 +162,12 @@ public class ChatConnection extends Thread{
         return connectedUserName;
     }
 
-    public void setConnectedUserName(String connectedUserName) {
-        this.connectedUserName = connectedUserName;
+    public void setSession(ChatSession session) {
+        this.session = session;
+    }
+
+    public String getRequestMessage() {
+        return "Primitive client - no request message.";
     }
 
     @Override

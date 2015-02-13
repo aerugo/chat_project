@@ -9,7 +9,7 @@ public class ChatMessage implements Serializable{
     private String messageAuthor;
     private Color messageColor;
     private String messageType;
-    private String requestAnswer = "";
+    private String requestAnswer = "no";
 
     public ChatMessage(String author, Color color, String message, String type){
         this.messageAuthor = author;
@@ -39,4 +39,8 @@ public class ChatMessage implements Serializable{
     }
 
     public String getMessageType() {return messageType; }
+
+    public String getRequestAnswer() {
+        return requestAnswer;
+    }
 }
