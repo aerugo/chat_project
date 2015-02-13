@@ -1,8 +1,6 @@
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by hugiasgeirsson on 10/02/15.
@@ -11,6 +9,7 @@ public class ChatConnection extends Thread{
     private Socket clientSocket;
     private ChatSession session;
     private String connectedUserName;
+    private String requestMessage;
     private PrintWriter out;
     private BufferedReader in;
     private boolean done;
@@ -32,7 +31,7 @@ public class ChatConnection extends Thread{
             }
         }catch(Exception e){
             System.out.println("read failed: " + e);
-            session.getWindow().printError("read failed: " + e);
+            session.getWindow().printNotification("read failed: " + e);
         }
     }
 
@@ -45,30 +44,22 @@ public class ChatConnection extends Thread{
             return;
         }
 
-        if(session.getHostAddress().equals("server")){System.out.println("Server out ok");}
-
         try{
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         }catch(Exception e){
             System.out.println("getInputStream failed: " + e);
-            session.getWindow().printError("Connection not established");
+            session.getWindow().printNotification("Connection not established");
             return;
         }
-
-        if(session.getHostAddress().equals("server")){System.out.println("Server in ok");}
 
         // Kommer vi hit gick anslutningen bra.
         // Vi skriver ut IP-nummret från klienten
         System.out.println("Connection Established: "
                 + clientSocket.getInetAddress());
 
-        // Wait for request message
-
-        if(session.getHostAddress().equals("server")){System.out.println("Server established");}
-
         //Client request pending
         if(!session.getHostAddress().equals("server")) {
-            sendMessage(new ChatMessage(session.getUserName() + "Wants to connect!", "request"));
+            sendMessage(new ChatMessage(session.getUserName() + session.getConnectRequestMessage(), "request"));
             boolean pending = true;
             while (pending) {
 
@@ -84,14 +75,16 @@ public class ChatConnection extends Thread{
             }
         }
 
-        if(session.getHostAddress().equals("server")){System.out.println("Server prepares to listen");}
+        if(session.getHostAddress().equals("server")) {
+            ChatMessage request = getMessageFromBuffer("request");
+            while (!request.getMessageType().equals("request")) {
+                request = getMessageFromBuffer("request");
+            }
+            this.requestMessage = request.getMessageString();
+        }
 
         //Listening for messages and username updates
-
         while(!done){
-
-            if(!session.getHostAddress().equals("server")){System.out.println("Client running");}
-            if(session.getHostAddress().equals("server")){System.out.println("Server running");}
 
             ChatMessage message = getMessageFromBuffer("message");
 
@@ -148,7 +141,7 @@ public class ChatConnection extends Thread{
             message = session.encoderDecoder.xmlToChatMessage(buffer);
         }catch(IOException e){
             System.out.println( this + " read failed: " + e);
-            message = new ChatMessage("System",new Color(255,0,0),"Could not get message...","message");
+            message = new ChatMessage("System",new Color(255,0,0),"Could not get message...","error");
         }
 
         return message;
@@ -167,7 +160,7 @@ public class ChatConnection extends Thread{
     }
 
     public String getRequestMessage() {
-        return "Primitive client - no request message.";
+        return requestMessage;
     }
 
     @Override

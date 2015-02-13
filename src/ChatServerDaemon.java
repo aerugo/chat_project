@@ -38,10 +38,6 @@ public class ChatServerDaemon extends Thread{
         done = true;
     }
 
-    public void setSession(ChatSession session){
-        this.session = session;
-    }
-
     public void run() {
         while (!done) {
             Socket clientSocket = null;
@@ -52,7 +48,11 @@ public class ChatServerDaemon extends Thread{
                 done = true;
             }
             if(!done) {
-                new ChatConnectionManagerWindow(new ChatConnectionManager(this, clientSocket));
+                ChatConnectionManager connectionManager = new ChatConnectionManager(this, clientSocket);
+                ChatConnectionManagerWindow connectionManagerWindow =
+                        new ChatConnectionManagerWindow(connectionManager);
+                String connectRequestMessage = connectionManager.getServerConnection().getRequestMessage();
+                connectionManagerWindow.setWindowTitle(connectRequestMessage);
             }
         }
     }

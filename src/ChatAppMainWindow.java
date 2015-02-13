@@ -14,6 +14,7 @@ public class ChatAppMainWindow extends JFrame implements ActionListener{
     JTextField connectionPort;
     JTextField userName;
     JTextField chatName;
+    JTextField connectRequestMessage;
 
     public ChatAppMainWindow(){
         super("Amazochat");
@@ -29,14 +30,16 @@ public class ChatAppMainWindow extends JFrame implements ActionListener{
         connectionPort = new JTextField("4444");
         userName = new JTextField("User");
         chatName = new JTextField("MyChatName");
+        connectRequestMessage = new JTextField("Request message");
 
-        setLayout(new GridLayout(3,2));
+        setLayout(new GridLayout(3,3));
         add(newClientButton);
         add(newServerButton);
         add(hostAddress);
         add(connectionPort);
         add(userName);
         add(chatName);
+        add(connectRequestMessage);
 
         pack();
         setVisible(true);
@@ -46,18 +49,21 @@ public class ChatAppMainWindow extends JFrame implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == newClientButton){
-            new ChatSessionWindow(new ChatSession(
+            ChatSession session = new ChatSession(
                     hostAddress.getText(),
                     Integer.parseInt(connectionPort.getText()),
                     userName.getText(),
-                    chatName.getText()));
+                    chatName.getText());
+            session.setConnectRequestMessage(connectRequestMessage.getText());
+            new ChatSessionWindow(session);
         }
         if(e.getSource() == newServerButton){
-            new ChatSessionWindow(new ChatSession(
+            ChatSession session = new ChatSession(
                     "server",
                     Integer.parseInt(connectionPort.getText()),
                     userName.getText(),
-                    chatName.getText()));
+                    chatName.getText());
+            new ChatSessionWindow(session);
         }
     }
 

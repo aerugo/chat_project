@@ -97,7 +97,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         }
 
         if(!session.connected & !session.getHostAddress().equals("server")){
-            printError("Connection to server failed! Disconnect to close window and try different connection.");
+            printNotification("Connection to server failed! Disconnect to close window and try different connection.");
         }
     }
 
@@ -114,7 +114,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         }
     }
 
-    public void printError(String errorMessage){
+    public void printNotification(String errorMessage){
         StyledDocument chatLog = displayPane.getStyledDocument();
         Style messageStyle = chatLog.addStyle("Message", null);
         Style authorStyle = chatLog.addStyle("User", null);

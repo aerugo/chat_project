@@ -5,13 +5,13 @@ import java.net.Socket;
  */
 public class ChatConnectionManager {
     private ChatServerDaemon serverDaemon;
-    private ChatSession temporarySession;
     private ChatSession chosenSession;
     private ChatConnection serverConnection;
 
     public ChatConnectionManager(ChatServerDaemon serverDaemon, Socket clientSocket){
         this.serverDaemon = serverDaemon;
-        this.temporarySession = new ChatSession(serverDaemon.serverSocket, serverDaemon.session.getUserName(), "temp");
+        ChatSession temporarySession = new ChatSession(serverDaemon.serverSocket,
+                serverDaemon.session.getUserName(), "temp");
         this.serverConnection = new ChatConnection(clientSocket, temporarySession);
         this.serverConnection.start();
     }

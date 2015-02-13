@@ -13,11 +13,11 @@ public class ChatSession {
     private Color messageColor;
     private String chatName;
     private String hostAddress;
+    private String connectRequestMessage = "No request message";
     private int port;
     private ServerSocket serverSocket;
     private ChatSessionWindow window;
     private ArrayList<ChatConnection> connectionList;
-    private ChatServerDaemon serverDaemon;
     private DefaultComboBoxModel userChooserModel;
     ChatMessageEncoderDecoder encoderDecoder;
     Boolean connected;
@@ -60,7 +60,7 @@ public class ChatSession {
                 System.exit(-1);
             }
 
-            serverDaemon = new ChatServerDaemon(serverSocket, this);
+            ChatServerDaemon serverDaemon = new ChatServerDaemon(serverSocket, this);
             serverDaemon.start();
             new ChatServerDaemonWindow(serverDaemon);
             connected = true;
@@ -153,5 +153,13 @@ public class ChatSession {
 
     public ComboBoxModel getUserChooserModel() {
         return userChooserModel;
+    }
+
+    public void setConnectRequestMessage(String connectRequestMessage) {
+        this.connectRequestMessage = connectRequestMessage;
+    }
+
+    public String getConnectRequestMessage() {
+        return connectRequestMessage;
     }
 }

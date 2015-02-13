@@ -15,6 +15,9 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
     ChatConnectionManager connectionManager;
 
     public ChatConnectionManagerWindow(ChatConnectionManager connectionManager){
+
+        this.setTitle(connectionManager.getServerConnection().getRequestMessage());
+
         this.connectionManager = connectionManager;
         startNewChat = new JButton("Start new chat");
         startNewChat.addActionListener(this);
@@ -36,8 +39,6 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
         add(refuseConnection);
         pack();
         setVisible(true);
-
-        this.setTitle(connectionManager.getServerConnection().getRequestMessage());
     }
 
     @Override
@@ -54,5 +55,9 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
             connectionManager.refuseConnection();
             dispose();
         }
+    }
+
+    public void setWindowTitle(String message){
+        this.setTitle(message);
     }
 }
