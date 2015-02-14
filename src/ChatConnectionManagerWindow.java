@@ -10,13 +10,14 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
     JButton startNewChat;
     JButton refuseConnection;
     JTextField newChatName;
+    JLabel requestMessage;
     JButton addToChat;
     JComboBox<Object> chatList;
     ChatConnectionManager connectionManager;
 
     public ChatConnectionManagerWindow(ChatConnectionManager connectionManager){
 
-        this.setTitle(connectionManager.getServerConnection().getRequestMessage());
+        this.setTitle("Manage incoming connection");
 
         this.connectionManager = connectionManager;
         startNewChat = new JButton("Start new chat");
@@ -25,6 +26,7 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
         addToChat.addActionListener(this);
         refuseConnection = new JButton("Refuse connection");
         refuseConnection.addActionListener(this);
+        requestMessage = new JLabel("No request message");
         newChatName = new JTextField("New chat name");
         chatList = new JComboBox(connectionManager.getOpenSessions());
 
@@ -35,6 +37,7 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
         add(startNewChat);
         add(addToChat);
         add(newChatName);
+        add(requestMessage);
         add(chatList);
         add(refuseConnection);
         pack();
@@ -59,5 +62,9 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
 
     public void setWindowTitle(String message){
         this.setTitle(message);
+    }
+
+    public void setRequestMessage(String requestMessageString) {
+        this.requestMessage.setText(requestMessageString);
     }
 }

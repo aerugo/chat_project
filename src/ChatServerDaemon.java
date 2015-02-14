@@ -52,7 +52,7 @@ public class ChatServerDaemon extends Thread{
                 ChatConnectionManagerWindow connectionManagerWindow =
                         new ChatConnectionManagerWindow(connectionManager);
                 String connectRequestMessage = connectionManager.getServerConnection().getRequestMessage();
-                connectionManagerWindow.setWindowTitle(connectRequestMessage);
+                connectionManagerWindow.setRequestMessage("Request from " + connectRequestMessage);
             }
         }
     }

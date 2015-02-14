@@ -59,11 +59,11 @@ public class ChatConnection extends Thread{
 
         //Client request pending
         if(!session.getHostAddress().equals("server")) {
-            sendMessage(new ChatMessage(session.getUserName() + session.getConnectRequestMessage(), "request"));
+            sendMessage(new ChatMessage(session.getUserName() + ": " + session.getConnectRequestMessage(), "request"));
             boolean pending = true;
             while (pending) {
 
-                ChatMessage message = getMessageFromBuffer("request");
+                ChatMessage message = getMessageFromBuffer();
 
                 if (message.getRequestAnswer().equals("yes")) {
                     sendMessage(new ChatMessage(session.getUserName(), new Color(0, 255, 0), "has connected!", "message"));
@@ -75,22 +75,18 @@ public class ChatConnection extends Thread{
             }
         }
 
-        if(session.getHostAddress().equals("server")) {
-            ChatMessage request = getMessageFromBuffer("request");
-            while (!request.getMessageType().equals("request")) {
-                request = getMessageFromBuffer("request");
-            }
-            this.requestMessage = request.getMessageString();
-        }
-
         //Listening for messages and username updates
         while(!done){
 
-            ChatMessage message = getMessageFromBuffer("message");
+            ChatMessage message = getMessageFromBuffer();
 
             String echo = "Recieved: ("
                     + clientSocket.getInetAddress()
                     + ") ";
+
+            if(message.getMessageType().equals("request")) {
+                this.requestMessage = message.getMessageString();
+            }
 
             if(message.getMessageType().equals("message")) {
                 session.getWindow().printMessage(message);
@@ -127,14 +123,21 @@ public class ChatConnection extends Thread{
         }
     }
 
-    private ChatMessage getMessageFromBuffer(String messageType){
+    private ChatMessage getMessageFromBuffer(){
         String buffer = "";
         ChatMessage message;
+        String messageType = "unknown";
+
         try {
-            while (!buffer.startsWith("<"+messageType)){
+            while (messageType.equals("unknown")){
                 buffer = in.readLine();
+                if(buffer.startsWith("<message")){
+                    messageType = "message";
+                }
+                if(buffer.startsWith("<request")){
+                    messageType = "request";
+                }
             }
-            System.out.println(buffer);
             while (!buffer.endsWith("</"+messageType+">")) {
                 buffer = buffer + in.readLine();
             }
@@ -143,7 +146,6 @@ public class ChatConnection extends Thread{
             System.out.println( this + " read failed: " + e);
             message = new ChatMessage("System",new Color(255,0,0),"Could not get message...","error");
         }
-
         return message;
     }
 
