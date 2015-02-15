@@ -53,11 +53,11 @@ public class ChatSession {
     public void startListening(){
         if(getHostAddress().equals("server")){
             try {
-                serverSocket = new ServerSocket(4444);
+                serverSocket = new ServerSocket(port);
             } catch (IOException e){
                 connected = false;
-                System.out.println("Could not listen on port: 4444");
-                System.exit(-1);
+                System.out.println("Could not listen on port: " + port);
+                new ChatErrorPrompt("Could not listen on port: " + port);
             }
 
             ChatServerDaemon serverDaemon = new ChatServerDaemon(serverSocket, this);

@@ -10,36 +10,54 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
     JButton startNewChat;
     JButton refuseConnection;
     JTextField newChatName;
-    JLabel requestMessage;
+    JLabel newChatNameLabel;
+    JTextField requestMessage;
+    JLabel chatListLabel;
     JButton addToChat;
     JComboBox<Object> chatList;
     ChatConnectionManager connectionManager;
+    JPanel nestedPanel;
 
     public ChatConnectionManagerWindow(ChatConnectionManager connectionManager){
 
         this.setTitle("Manage incoming connection");
+        setResizable(false);
+
+        Dimension buttonDimensions = new Dimension(50, 20);
 
         this.connectionManager = connectionManager;
+
+        nestedPanel = new JPanel();
         startNewChat = new JButton("Start new chat");
+        startNewChat.setSize(buttonDimensions);
         startNewChat.addActionListener(this);
         addToChat = new JButton("Add to chat");
+        addToChat.setSize(buttonDimensions);
         addToChat.addActionListener(this);
         refuseConnection = new JButton("Refuse connection");
+        refuseConnection.setSize(buttonDimensions);
         refuseConnection.addActionListener(this);
-        requestMessage = new JLabel("No request message");
-        newChatName = new JTextField("New chat name");
+        requestMessage = new JTextField("No request message");
+        requestMessage.setEditable(false);
+        newChatName = new JTextField("New Amazochat");
+        newChatNameLabel = new JLabel("New chat name:");
         chatList = new JComboBox(connectionManager.getOpenSessions());
+        chatListLabel = new JLabel("Active chats:");
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setPreferredSize(new Dimension(300, 300));
 
-        setLayout(new GridLayout(3,3));
-        add(startNewChat);
-        add(addToChat);
-        add(newChatName);
-        add(requestMessage);
-        add(chatList);
-        add(refuseConnection);
+        setLayout(new BorderLayout());
+        add(requestMessage, BorderLayout.NORTH);
+        add(nestedPanel, BorderLayout.SOUTH);
+        nestedPanel.setLayout(new GridLayout(3, 3));
+        nestedPanel.add(startNewChat);
+        nestedPanel.add(newChatNameLabel);
+        nestedPanel.add(newChatName);
+        nestedPanel.add(addToChat);
+        nestedPanel.add(chatListLabel);
+        nestedPanel.add(chatList);
+        nestedPanel.add(refuseConnection);
+
         pack();
         setVisible(true);
     }

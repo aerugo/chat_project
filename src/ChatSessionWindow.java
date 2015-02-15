@@ -9,6 +9,7 @@ import java.awt.event.*;
 
 
 public class ChatSessionWindow extends JFrame implements ActionListener{
+    private JPanel controlPanel;
     private JTextPane displayPane;
     private JTextArea editorPane;
     private JButton sendButton;
@@ -36,6 +37,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         JPanel chatPanel = new JPanel();
+        controlPanel = new JPanel();
         displayPane = new JTextPane();
         JScrollPane displayScrollPane = new JScrollPane(displayPane);
         displayPane.setPreferredSize(new Dimension(300, 300));
@@ -61,6 +63,14 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
 
+        controlPanel.setLayout(new GridLayout(3,2));
+        controlPanel.add(colorChooser);
+        controlPanel.add(sendButton);
+        controlPanel.add(userChooser);
+        controlPanel.add(kickUser);
+        controlPanel.add(new JLabel(""));
+        controlPanel.add(disconnectButton);
+
         JPanel dividerPanel = new JPanel();
         dividerPanel.setPreferredSize(new Dimension(300, 25));
 
@@ -69,11 +79,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
                         .addComponent(displayScrollPane)
                         .addComponent(dividerPanel)
                         .addComponent(editorScrollPane)
-                        .addComponent(sendButton)
-                        .addComponent(disconnectButton)
-                        .addComponent(colorChooser)
-                        .addComponent(kickUser)
-                        .addComponent(userChooser)
+                        .addComponent(controlPanel)
         );
 
         layout.setHorizontalGroup(
@@ -81,11 +87,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
                         .addComponent(displayScrollPane)
                         .addComponent(dividerPanel)
                         .addComponent(editorScrollPane)
-                        .addComponent(sendButton)
-                        .addComponent(disconnectButton)
-                        .addComponent(colorChooser)
-                        .addComponent(kickUser)
-                        .addComponent(userChooser)
+                        .addComponent(controlPanel)
         );
 
         pack();
