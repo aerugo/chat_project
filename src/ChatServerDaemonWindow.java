@@ -13,6 +13,7 @@ public class ChatServerDaemonWindow extends JFrame implements ActionListener{
 
     public ChatServerDaemonWindow(ChatServerDaemon serverDaemon){
         this.serverDaemon = serverDaemon;
+        setResizable(false);
         this.setTitle("Server listening on " + serverDaemon.serverSocket.getLocalPort());
         disconnectServer = new JButton("Disconnect server");
         warningLabel = new JLabel("<html>Warning: All chats started by this server<br> will be terminated if disconnected.</html>");

@@ -27,12 +27,20 @@ public class ChatConnection extends Thread{
             out.println(xmlMessage);
             System.out.println("Sent message");
             if(message.getMessageType().equals("disconnect")){
-                this.done = true;
+                done = true;
             }
         }catch(Exception e){
             System.out.println("read failed: " + e);
             session.getWindow().printNotification("read failed: " + e);
         }
+    }
+
+    public void sendFile(File file){
+
+    }
+
+    public void acceptFile(File file){
+
     }
 
     public void run(){
@@ -91,7 +99,7 @@ public class ChatConnection extends Thread{
             if(message.getMessageType().equals("message")) {
                 session.getWindow().printMessage(message);
 
-                if (session.getHostAddress().equals("server")) {
+                if (session.getHostAddress().equals("server") & !done) {
                     session.sendMessageToAll(message);
                 }
             }
@@ -108,8 +116,8 @@ public class ChatConnection extends Thread{
 
         // Reach here when connection is done
 
-        System.out.println("disconnect");
         disconnect();
+        session.removeConnectionFromUserChooser(this);
         System.out.println(this + " disconnected!");
     }
 
@@ -136,6 +144,9 @@ public class ChatConnection extends Thread{
                 }
                 if(buffer.startsWith("<request")){
                     messageType = "request";
+                }
+                if(buffer.startsWith("<filerequest")){
+                    messageType = "filerequest";
                 }
             }
             while (!buffer.endsWith("</"+messageType+">")) {

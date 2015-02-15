@@ -57,7 +57,7 @@ public class ChatSession {
             } catch (IOException e){
                 connected = false;
                 System.out.println("Could not listen on port: " + port);
-                new ChatErrorPrompt("Could not listen on port: " + port);
+                new ChatErrorPromptWindow("Could not listen on port: " + port);
             }
 
             ChatServerDaemon serverDaemon = new ChatServerDaemon(serverSocket, this);
@@ -114,10 +114,6 @@ public class ChatSession {
         return chatName;
     }
 
-    public void setChatName(String chatName) {
-        this.chatName = chatName;
-    }
-
     public String getHostAddress() {
         return hostAddress;
     }
@@ -153,6 +149,10 @@ public class ChatSession {
 
     public ComboBoxModel getUserChooserModel() {
         return userChooserModel;
+    }
+
+    public void removeConnectionFromUserChooser(ChatConnection connection){
+        userChooserModel.removeElement(connection);
     }
 
     public void setConnectRequestMessage(String connectRequestMessage) {

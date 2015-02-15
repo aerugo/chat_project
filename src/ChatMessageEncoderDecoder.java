@@ -11,6 +11,8 @@ public class ChatMessageEncoderDecoder {
     public String chatMessageToXML(ChatMessage chatMessage){
         String message = chatMessage.getMessageString();
         String author = chatMessage.getMessageAuthor();
+        String fileName = chatMessage.getFileName();
+        int fileSize = chatMessage.getFileSize();
         Color color = chatMessage.getMessageColor();
         String requestAnswer = chatMessage.getRequestAnswer();
         if(chatMessage.getMessageType().equals("disconnect")){
@@ -21,7 +23,13 @@ public class ChatMessageEncoderDecoder {
             return "<request reply=\"" + requestAnswer + "\">" +
                     message +
                     "</request>";
-        }else {
+        } else if (chatMessage.getMessageType().equals("filerequest")) {
+            return "<filerequest reply=\"" + fileName + "\" size=\"" + fileSize + "\">" +
+                    message +
+                    "</filerequest>";
+        }
+
+        else {
             return "<message sender=\"" + author + "\">" +
                     "<text color=" + rgbToHex(color) + "\">" +
                     message +
@@ -36,8 +44,10 @@ public class ChatMessageEncoderDecoder {
         String message = "Error: No message retrieved.";
         String messageType = "message";
         String requestAnswer = "";
+        String fileName = "No file";
+        int fileSize = 0;
 
-        // Check if message is request and get request message
+        // Check if request and get request message
         if(XML.startsWith("<request")) {
             Scanner requestParser = new Scanner(XML);
             requestParser.useDelimiter("<request\\s|</request>");
@@ -71,7 +81,7 @@ public class ChatMessageEncoderDecoder {
             return new ChatMessage(message, requestAnswer);
         }
 
-        //Check if message type and get message
+        //Check if message and get message
         if(XML.startsWith("<message")) {
             // Get author name
             Scanner authorParser = new Scanner(XML);
@@ -133,6 +143,44 @@ public class ChatMessageEncoderDecoder {
             }
             return new ChatMessage(author, color, message, messageType);
         }
+
+        // Check if filerequest and get request message
+        if(XML.startsWith("<filerequest")) {
+            Scanner requestParser = new Scanner(XML);
+            requestParser.useDelimiter("<filerequest\\s|</filerequest>");
+
+            String next = "";
+            if (requestParser.hasNext()) {
+                next = requestParser.next();
+                String[] nameSplit = next.split("name=\"");
+                if (nameSplit.length > 1) {
+                    fileName = nameSplit[1].split("\"")[0];}
+                String[] sizeSplit = next.split("size=\"");
+                if (sizeSplit.length > 1) {
+                    fileSize = Integer.parseInt(sizeSplit[1].split("\"")[0]);}
+            }
+
+            Scanner requestMessageParser = new Scanner(XML);
+            requestMessageParser.useDelimiter("<|>");
+            if(requestMessageParser.hasNext()) {
+                next = "";
+                while(!next.startsWith("filerequest")){
+                    next = requestMessageParser.next();
+                }
+                requestMessageParser.useDelimiter("\\Z");
+                next = requestMessageParser.next();
+                if(next.startsWith(">")){
+                    next = next.substring(1);
+                }
+                if(next.endsWith("</filerequest>")){
+                    next = next.substring(0, next.length()-14);
+                }
+                message = next;
+
+            }
+            return new ChatMessage(fileName, message, fileSize);
+        }
+
         return new ChatMessage(author, color, message, messageType);
     }
 
@@ -151,4 +199,5 @@ public class ChatMessageEncoderDecoder {
         }
         return hex.toUpperCase();
     }
+
 }

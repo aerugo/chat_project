@@ -78,10 +78,6 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
         }
     }
 
-    public void setWindowTitle(String message){
-        this.setTitle(message);
-    }
-
     public void setRequestMessage(String requestMessageString) {
         this.requestMessage.setText(requestMessageString);
     }

@@ -6,12 +6,14 @@ import java.awt.event.ActionListener;
 /**
  * Created by hugiasgeirsson on 15/02/15.
  */
-public class ChatErrorPrompt extends JFrame implements ActionListener{
+public class ChatErrorPromptWindow extends JFrame implements ActionListener{
     JLabel errorMessage;
     JButton okButton;
 
-    public ChatErrorPrompt(String errorMessageString){
+
+    public ChatErrorPromptWindow(String errorMessageString){
         setTitle("Error message");
+        setResizable(false);
 
         errorMessage = new JLabel(errorMessageString);
         okButton = new JButton("Ok");

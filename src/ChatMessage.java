@@ -10,7 +10,10 @@ public class ChatMessage implements Serializable{
     private Color messageColor;
     private String messageType;
     private String requestAnswer = "no";
+    private String fileName = "message";
+    private int fileSize = 0;
 
+    // Constructor for messages
     public ChatMessage(String author, Color color, String message, String type){
         this.messageAuthor = author;
         this.messageColor = color;
@@ -18,12 +21,23 @@ public class ChatMessage implements Serializable{
         this.messageType = type;
     }
 
+    // Constructor for requests
     public ChatMessage(String message, String requestAnswer){
         this.messageType = "request";
         this.messageAuthor = "Unknown";
         this.messageString = message;
         this.messageColor = new Color(255,255,255);
         this.requestAnswer = requestAnswer;
+    }
+
+    // Constructor for file requests
+    public ChatMessage(String fileName, String requestMessage, int fileSize){
+        this.messageType = "filerequest";
+        this.messageAuthor = "Unknown";
+        this.messageString = requestMessage;
+        this.messageColor = new Color(255,255,255);
+        this.fileName = fileName;
+        this.fileSize = fileSize;
     }
 
     public String getMessageString() {
@@ -43,4 +57,9 @@ public class ChatMessage implements Serializable{
     public String getRequestAnswer() {
         return requestAnswer;
     }
+
+    public String getFileName() { return fileName; }
+
+    public int getFileSize() { return fileSize; }
+
 }

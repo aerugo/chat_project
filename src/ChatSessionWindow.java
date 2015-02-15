@@ -15,9 +15,12 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
     private JButton sendButton;
     private JButton disconnectButton;
     private ChatSession chatSession;
-    private JButton colorChooser;
+    private JButton colorChooserButton;
     private JButton kickUser;
-    private JComboBox userChooser;
+    private JButton sendFileButton;
+    private JButton encryptionOptionsButton;
+    private JComboBox kickUserChooser;
+    private JComboBox sendFileUserChooser;
 
     public ChatSessionWindow(ChatSession session) {
         super("Amazochat");
@@ -33,8 +36,9 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         }
         this.setTitle(windowType + session.getChatName());
 
-        setPreferredSize(new Dimension(300, 600));
+        setPreferredSize(new Dimension(300, 700));
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        Dimension buttonSize = new Dimension(50, 20);
 
         JPanel chatPanel = new JPanel();
         controlPanel = new JPanel();
@@ -47,14 +51,23 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         editorPane.setPreferredSize(new Dimension(300, 200));
         JScrollPane editorScrollPane = new JScrollPane(editorPane);
         sendButton = new JButton("Send");
+        sendButton.setSize(buttonSize);
         sendButton.addActionListener(this);
         disconnectButton = new JButton("Disconnect");
+        disconnectButton.setSize(buttonSize);
         disconnectButton.addActionListener(this);
-        colorChooser = new JButton("Text color");
-        colorChooser.addActionListener(this);
+        colorChooserButton = new JButton("Text color");
+        colorChooserButton.setSize(buttonSize);
+        colorChooserButton.addActionListener(this);
         kickUser = new JButton("Kick user");
+        kickUser.setSize(buttonSize);
         kickUser.addActionListener(this);
-        userChooser = new JComboBox(session.getUserChooserModel());
+        sendFileButton = new JButton("Send file");
+        sendFileButton.addActionListener(this);
+        encryptionOptionsButton = new JButton("Encryption");
+        encryptionOptionsButton.addActionListener(this);
+        kickUserChooser = new JComboBox(session.getUserChooserModel());
+        sendFileUserChooser = new JComboBox(session.getUserChooserModel());
 
         add(chatPanel);
         chatPanel.setPreferredSize(new Dimension(300, 600));
@@ -63,12 +76,14 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
 
-        controlPanel.setLayout(new GridLayout(3,2));
-        controlPanel.add(colorChooser);
+        controlPanel.setLayout(new GridLayout(4,2));
+        controlPanel.add(colorChooserButton);
         controlPanel.add(sendButton);
-        controlPanel.add(userChooser);
+        controlPanel.add(sendFileUserChooser);
+        controlPanel.add(sendFileButton);
+        controlPanel.add(kickUserChooser);
         controlPanel.add(kickUser);
-        controlPanel.add(new JLabel(""));
+        controlPanel.add(encryptionOptionsButton);
         controlPanel.add(disconnectButton);
 
         JPanel dividerPanel = new JPanel();
@@ -95,7 +110,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
 
         if(!session.getHostAddress().equals("server")){
             kickUser.setVisible(false);
-            userChooser.setVisible(false);
+            kickUserChooser.setVisible(false);
         }
 
         if(!session.connected & !session.getHostAddress().equals("server")){
@@ -142,7 +157,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
             }
             editorPane.setText("");
         }
-        if(e.getSource() == colorChooser){
+        if(e.getSource() == colorChooserButton){
             Color newColor = JColorChooser.showDialog(
                     ChatSessionWindow.this,
                     "Choose Text Color",
@@ -160,7 +175,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
 
         if(e.getSource() == kickUser){
             if(!chatSession.getConnectionList().isEmpty()){
-                ChatConnection connection = (ChatConnection) userChooser.getSelectedItem();
+                ChatConnection connection = (ChatConnection) kickUserChooser.getSelectedItem();
                 chatSession.sendMessageToAll(new ChatMessage(
                         chatSession.getUserName(),
                         new Color(255,0,0),
@@ -168,6 +183,10 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
                         "message"));
                 connection.killConnection();
             }
+        }
+
+        if(e.getSource() == sendFileButton){
+            new ChatFileTransferSendWindow((ChatConnection) sendFileUserChooser.getSelectedItem());
         }
 
     }
