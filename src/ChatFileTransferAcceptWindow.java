@@ -9,8 +9,9 @@ import java.io.File;
  */
 public class ChatFileTransferAcceptWindow extends JFrame implements ActionListener{
     ChatConnection connection;
+    ChatMessage message;
+    ChatFileAcceptDaemon daemon;
     int fileTransferPort;
-    File targetFile;
     String requestMessage;
     JTextField replyMessageField;
     String fileName;
@@ -19,9 +20,11 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
     JButton rejectButton;
     JProgressBar progressBar;
 
-    public ChatFileTransferAcceptWindow(ChatConnection connection, ChatMessage message){
+    public ChatFileTransferAcceptWindow(ChatConnection connection, ChatMessage message, ChatFileAcceptDaemon daemon){
 
         this.connection = connection;
+        this.message = message;
+        this.daemon = daemon;
         this.fileTransferPort = message.getFileRequestPort();
         this.requestMessage = message.getMessageString();
         this.fileName = message.getFileName();
@@ -48,11 +51,13 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
         controlPanel.add(rejectButton);
         controlPanel.add(okButton);
 
-        fileInfo.setLayout(new GridLayout(2,2));
+        fileInfo.setLayout(new GridLayout(3,2));
         fileInfo.add(new JLabel("File name:"));
         fileInfo.add(fileNameLabel);
         fileInfo.add(new JLabel("File size:"));
         fileInfo.add(fileSizeLabel);
+        fileInfo.add(new JLabel("Transfer progress: "));
+        fileInfo.add(progressBar);
 
         setLayout(new GridLayout(5, 1));
         add(new JLabel("File transfer request message:"));
@@ -69,31 +74,25 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
     public void actionPerformed(ActionEvent e) {
 
         if(e.getSource() == rejectButton){
+            daemon.disconnect();
             dispose();
         }
 
         if(e.getSource() == okButton){
-
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Output file");
-            fileChooser.setSelectedFile(new File(fileName));
-            int userSelection = fileChooser.showSaveDialog(this);
-            if (userSelection == JFileChooser.APPROVE_OPTION) {
-                targetFile = fileChooser.getSelectedFile();
-                System.out.println("Save as: " + targetFile.getAbsolutePath());
-            }
-            FileTransferConnection ftc = new FileTransferConnection(connection);
-            ftc.setAcceptWindow(this);
-            ftc.acceptFile((int)fileSize, targetFile, replyMessageField.getText());
+            okButton.setEnabled(false);
+            daemon.start();
         }
     }
 
     public void initiateProgressBar(int maxValue){
         progressBar.setMaximum(maxValue);
+        progressBar.setStringPainted(true);
         progressBar.setValue(0);
     }
 
     public void updateProgressBar(int newValue){
         progressBar.setValue(newValue);
     }
+
+    public String getReplyMessageString() {return replyMessageField.getText();}
 }

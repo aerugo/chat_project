@@ -33,7 +33,7 @@ public class ChatServerDaemon extends Thread{
             serverSocket.close();
             System.out.println("Daemon dead!");
         } catch (IOException e){
-            System.out.println("Can't kill daemon!  " + e);
+            System.out.println("Can't kill fileSend!  " + e);
         }
         done = true;
     }

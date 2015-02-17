@@ -9,6 +9,7 @@ import java.io.File;
  */
 public class ChatFileTransferSendWindow extends JFrame implements ActionListener{
     ChatConnection mainConnection;
+    ChatFileSend fileSend;
     JTextField requestMessage;
     JLabel requestMessageLabel;
     JButton sendButton;
@@ -28,6 +29,7 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
         setTitle("File transfer to " + connection.getConnectedUserName());
         setSize(new Dimension(400, 300));
         setResizable(false);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         requestMessage = new JTextField("I want to send you a file!");
         requestMessageLabel = new JLabel("Request message:");
@@ -38,7 +40,7 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
         sendButton.setSize(new Dimension(50, 20));
         sendButton.addActionListener(this);
         sendButton.setEnabled(false);
-        cancelButton = new JButton("Cancel");
+        cancelButton = new JButton("Close");
         cancelButton.setSize(new Dimension(50, 20));
         cancelButton.addActionListener(this);
         chooseFile = new JButton("Choose file");
@@ -73,6 +75,9 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
     public void actionPerformed(ActionEvent e) {
 
         if(e.getSource() == cancelButton){
+            if(!(fileSend == null)){
+                fileSend.disconnect();
+            }
             dispose();
         }
 
@@ -95,9 +100,10 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
             ChatMessage fileSendMessage = new ChatMessage(fileName.getText(),
                     requestMessage.getText(),(int)file.length());
             mainConnection.sendMessage(fileSendMessage);
-            FileTransferConnection transferConnection = new FileTransferConnection(mainConnection);
-            transferConnection.setSendWindow(this);
-            mainConnection.setActiveFileTransfer(transferConnection);
+            fileSend = new ChatFileSend();
+            fileSend.setSendWindow(this);
+            mainConnection.setFileSend(fileSend);
+
         }
     }
 
@@ -107,10 +113,12 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
 
     public void initiateProgressBar(int maxValue){
         progressBar.setMaximum(maxValue);
+        progressBar.setStringPainted(true);
         progressBar.setValue(0);
     }
 
     public void updateProgressBar(int newValue){
         progressBar.setValue(newValue);
     }
+
 }

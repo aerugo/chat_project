@@ -11,7 +11,8 @@ public class ChatConnection extends Thread{
     private String connectedUserName;
     private String requestMessage;
     private File fileToTransfer;
-    private FileTransferConnection activeFileTransfer;
+    private ChatFileSend fileSend;
+    private ChatFileAcceptDaemon acceptDaemon;
     private PrintWriter out;
     private BufferedReader in;
     private boolean done;
@@ -86,7 +87,7 @@ public class ChatConnection extends Thread{
         //Listening for messages and username updates
         while(!done){
 
-            ChatMessage message = getMessageFromBuffer();
+            final ChatMessage message = getMessageFromBuffer();
 
             System.out.println("Message type: "+ message.getMessageType());
 
@@ -102,14 +103,23 @@ public class ChatConnection extends Thread{
 
             if(message.getMessageType().equals("filerequest")) {
                 System.out.println("Filerequest is received!");
-                new ChatFileTransferAcceptWindow(this, message);
+                acceptDaemon = new ChatFileAcceptDaemon(message, this);
             }
 
             if(message.getMessageType().equals("fileresponse")) {
                 System.out.println("Fileresponse is received!");
-                activeFileTransfer.prepareFileSend(message.getFileRequestPort());
-                activeFileTransfer.sendFile(fileToTransfer);
-                activeFileTransfer.getSendWindow().setRequestReply("File accepted! Message: " + message.getMessageString());
+                if (message.getRequestAnswer().equals("yes")){
+                    Runnable sendTask = new Runnable() {
+                        public void run() {
+                            fileSend.getSendWindow().setRequestReply("File accepted! Message: " + message.getMessageString());
+                            fileSend.openFileConnection(message.getFileRequestPort());
+                            fileSend.sendFile(fileToTransfer);
+                        }
+                    };
+                    new Thread(sendTask).start();
+                } else{
+                    fileSend.getSendWindow().setRequestReply("Transfer not accepted. Message: "+ message.getMessageString());
+                }
             }
 
             if(message.getMessageType().equals("message")) {
@@ -197,16 +207,12 @@ public class ChatConnection extends Thread{
         this.session = session;
     }
 
-    public ChatSession getSession() {
-        return session;
-    }
-
     public void setFileToTransfer(File fileToTransfer) {
         this.fileToTransfer = fileToTransfer;
     }
 
-    public void setActiveFileTransfer(FileTransferConnection activeFileTransfer) {
-        this.activeFileTransfer = activeFileTransfer;
+    public void setFileSend(ChatFileSend fileSend) {
+        this.fileSend = fileSend;
     }
 
     public String getRequestMessage() {
