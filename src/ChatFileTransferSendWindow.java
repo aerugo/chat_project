@@ -8,6 +8,7 @@ import java.io.File;
  * Created by hugiasgeirsson on 15/02/15.
  */
 public class ChatFileTransferSendWindow extends JFrame implements ActionListener{
+    ChatConnection mainConnection;
     JTextField requestMessage;
     JLabel requestMessageLabel;
     JButton sendButton;
@@ -19,8 +20,11 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
     JLabel fileSizeLabel;
     JLabel fileSize;
     JFileChooser fileChooser;
+    JProgressBar progressBar;
+    File file;
 
     public ChatFileTransferSendWindow(ChatConnection connection){
+        this.mainConnection = connection;
         setTitle("File transfer to " + connection.getConnectedUserName());
         setSize(new Dimension(400, 300));
         setResizable(false);
@@ -33,6 +37,7 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
         sendButton = new JButton("Send");
         sendButton.setSize(new Dimension(50, 20));
         sendButton.addActionListener(this);
+        sendButton.setEnabled(false);
         cancelButton = new JButton("Cancel");
         cancelButton.setSize(new Dimension(50, 20));
         cancelButton.addActionListener(this);
@@ -43,8 +48,9 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
         fileSize = new JLabel("0");
         fileSizeLabel = new JLabel("File size");
         fileChooser = new JFileChooser();
+        progressBar = new JProgressBar();
 
-        setLayout(new GridLayout(5,2));
+        setLayout(new GridLayout(6,2));
         add(chooseFile);
         add(fileName);
         add(fileSizeLabel);
@@ -55,6 +61,8 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
         add(requestReply);
         add(cancelButton);
         add(sendButton);
+        add(new JLabel("Transfer progress:"));
+        add(progressBar);
 
         pack();
         setVisible(true);
@@ -71,14 +79,38 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
         if(e.getSource() == chooseFile){
             int option = fileChooser.showOpenDialog(this);
             if(option == JFileChooser.APPROVE_OPTION) {
-                File file = fileChooser.getSelectedFile();
+                file = fileChooser.getSelectedFile();
                 try {
-                    fileName.setText(file.getCanonicalPath());
+                    fileName.setText(file.getName());
                     fileSize.setText(String.valueOf(file.length()*0.001) + " kb");
+                    sendButton.setEnabled(true);
                 }catch (Exception exception){
                     fileName.setText("File could not be selected");
                 }
             }
         }
+
+        if(e.getSource() == sendButton){
+            mainConnection.setFileToTransfer(file);
+            ChatMessage fileSendMessage = new ChatMessage(fileName.getText(),
+                    requestMessage.getText(),(int)file.length());
+            mainConnection.sendMessage(fileSendMessage);
+            FileTransferConnection transferConnection = new FileTransferConnection(mainConnection);
+            transferConnection.setSendWindow(this);
+            mainConnection.setActiveFileTransfer(transferConnection);
+        }
+    }
+
+    public void setRequestReply(String requestReply) {
+        this.requestReply.setText(requestReply);
+    }
+
+    public void initiateProgressBar(int maxValue){
+        progressBar.setMaximum(maxValue);
+        progressBar.setValue(0);
+    }
+
+    public void updateProgressBar(int newValue){
+        progressBar.setValue(newValue);
     }
 }

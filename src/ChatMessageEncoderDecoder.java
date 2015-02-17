@@ -12,9 +12,11 @@ public class ChatMessageEncoderDecoder {
         String message = chatMessage.getMessageString();
         String author = chatMessage.getMessageAuthor();
         String fileName = chatMessage.getFileName();
-        int fileSize = chatMessage.getFileSize();
+        long fileSize = chatMessage.getFileSize();
         Color color = chatMessage.getMessageColor();
         String requestAnswer = chatMessage.getRequestAnswer();
+        int fileRequestPort = chatMessage.getFileRequestPort();
+
         if(chatMessage.getMessageType().equals("disconnect")){
             return "<message sender=\"" + author + "\">" +
                     "<disconnect />" +
@@ -24,11 +26,14 @@ public class ChatMessageEncoderDecoder {
                     message +
                     "</request>";
         } else if (chatMessage.getMessageType().equals("filerequest")) {
-            return "<filerequest reply=\"" + fileName + "\" size=\"" + fileSize + "\">" +
+            return "<filerequest name=\"" + fileName + "\" size=\"" + fileSize + "\">" +
                     message +
                     "</filerequest>";
+        } else if (chatMessage.getMessageType().equals("fileresponse")) {
+            return "<fileresponse reply=\"" + requestAnswer + "\" port=\"" + fileRequestPort + "\">" +
+                    message +
+                    "</fileresponse>";
         }
-
         else {
             return "<message sender=\"" + author + "\">" +
                     "<text color=" + rgbToHex(color) + "\">" +
@@ -45,6 +50,7 @@ public class ChatMessageEncoderDecoder {
         String messageType = "message";
         String requestAnswer = "";
         String fileName = "No file";
+        int fileRequestPort = 0;
         int fileSize = 0;
 
         // Check if request and get request message
@@ -179,6 +185,46 @@ public class ChatMessageEncoderDecoder {
 
             }
             return new ChatMessage(fileName, message, fileSize);
+        }
+
+        // Check if fileresponse and get fileresponse message
+        if(XML.startsWith("<fileresponse")) {
+            Scanner requestParser = new Scanner(XML);
+            requestParser.useDelimiter("<fileresponse\\s|</fileresponse>");
+
+            String next = "";
+            if (requestParser.hasNext()) {
+                next = requestParser.next();
+                String[] nameSplit = next.split("reply=\"");
+                if (nameSplit.length > 1) {
+                    requestAnswer = nameSplit[1].split("\"")[0];}
+                String[] sizeSplit = next.split("port=\"");
+                if (sizeSplit.length > 1) {
+                    fileRequestPort = Integer.parseInt(sizeSplit[1].split("\"")[0]);}
+            }
+
+            Scanner requestMessageParser = new Scanner(XML);
+            requestMessageParser.useDelimiter("<|>");
+            if(requestMessageParser.hasNext()) {
+                next = "";
+                while(!next.startsWith("fileresponse")){
+                    next = requestMessageParser.next();
+                }
+                requestMessageParser.useDelimiter("\\Z");
+                next = requestMessageParser.next();
+                if(next.startsWith(">")){
+                    next = next.substring(1);
+                }
+                if(next.endsWith("</fileresponse>")){
+                    next = next.substring(0, next.length()-15);
+                }
+                message = next;
+
+            }
+            ChatMessage returnMessage = new ChatMessage(message, requestAnswer);
+            returnMessage.setFileRequestPort(fileRequestPort);
+            returnMessage.setMessageType("fileresponse");
+            return returnMessage;
         }
 
         return new ChatMessage(author, color, message, messageType);

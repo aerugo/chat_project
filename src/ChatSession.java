@@ -27,7 +27,7 @@ public class ChatSession {
         this.port = port;
         this.chatName = chatName;
         this.encoderDecoder = new ChatMessageEncoderDecoder();
-        userChooserModel = new DefaultComboBoxModel();
+        this.userChooserModel = new DefaultComboBoxModel();
         setUserName(userName);
         setMessageColor(new Color(0,0,255));
         connectionList = new ArrayList<ChatConnection>();
@@ -40,7 +40,7 @@ public class ChatSession {
         this.chatName = chatName;
         this.encoderDecoder = new ChatMessageEncoderDecoder();
         this.connected = true;
-        userChooserModel = new DefaultComboBoxModel();
+        this.userChooserModel = new DefaultComboBoxModel();
         setUserName(userName);
         setMessageColor(new Color(0,0,255));
         connectionList = new ArrayList<ChatConnection>();
@@ -140,7 +140,7 @@ public class ChatSession {
 
     public void addConnection(ChatConnection connection) {
         this.connectionList.add(connection);
-        userChooserModel.addElement(connection);
+        this.userChooserModel.addElement(connection);
     }
 
     public ArrayList<ChatConnection> getConnectionList() {

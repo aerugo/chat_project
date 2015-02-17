@@ -10,6 +10,8 @@ public class ChatConnection extends Thread{
     private ChatSession session;
     private String connectedUserName;
     private String requestMessage;
+    private File fileToTransfer;
+    private FileTransferConnection activeFileTransfer;
     private PrintWriter out;
     private BufferedReader in;
     private boolean done;
@@ -19,10 +21,15 @@ public class ChatConnection extends Thread{
         this.clientSocket = clientSocket;
         this.session = session;
         this.done = false;
+        if(!session.getHostAddress().equals("server")){
+            this.connectedUserName = "Server host";
+            System.out.println("Server running...");
+        }
     }
 
     public void sendMessage(ChatMessage message){
         String xmlMessage = session.encoderDecoder.chatMessageToXML(message);
+        System.out.println(xmlMessage);
         try{
             out.println(xmlMessage);
             System.out.println("Sent message");
@@ -33,14 +40,6 @@ public class ChatConnection extends Thread{
             System.out.println("read failed: " + e);
             session.getWindow().printNotification("read failed: " + e);
         }
-    }
-
-    public void sendFile(File file){
-
-    }
-
-    public void acceptFile(File file){
-
     }
 
     public void run(){
@@ -67,6 +66,7 @@ public class ChatConnection extends Thread{
 
         //Client request pending
         if(!session.getHostAddress().equals("server")) {
+            System.out.println("Client running...");
             sendMessage(new ChatMessage(session.getUserName() + ": " + session.getConnectRequestMessage(), "request"));
             boolean pending = true;
             while (pending) {
@@ -88,12 +88,28 @@ public class ChatConnection extends Thread{
 
             ChatMessage message = getMessageFromBuffer();
 
+            System.out.println("Message type: "+ message.getMessageType());
+
             String echo = "Recieved: ("
                     + clientSocket.getInetAddress()
                     + ") ";
 
-            if(message.getMessageType().equals("request")) {
+            if(message.getMessageType().equals("request")||
+                    message.getMessageType().equals("filerequest")||
+                    message.getMessageType().equals("fileresponse")) {
                 this.requestMessage = message.getMessageString();
+            }
+
+            if(message.getMessageType().equals("filerequest")) {
+                System.out.println("Filerequest is received!");
+                new ChatFileTransferAcceptWindow(this, message);
+            }
+
+            if(message.getMessageType().equals("fileresponse")) {
+                System.out.println("Fileresponse is received!");
+                activeFileTransfer.prepareFileSend(message.getFileRequestPort());
+                activeFileTransfer.sendFile(fileToTransfer);
+                activeFileTransfer.getSendWindow().setRequestReply("File accepted! Message: " + message.getMessageString());
             }
 
             if(message.getMessageType().equals("message")) {
@@ -106,11 +122,13 @@ public class ChatConnection extends Thread{
 
             System.out.println(echo);
 
-            try{
-                connectedUserName = message.getMessageAuthor();
-            }catch(NullPointerException e){
-                System.out.println("No name available");
-                connectedUserName = "Unknown";
+            if(session.getHostAddress().equals("server")) {
+                try {
+                    connectedUserName = message.getMessageAuthor();
+                } catch (NullPointerException e) {
+                    System.out.println("No name available");
+                    connectedUserName = "Unknown";
+                }
             }
         }
 
@@ -148,6 +166,9 @@ public class ChatConnection extends Thread{
                 if(buffer.startsWith("<filerequest")){
                     messageType = "filerequest";
                 }
+                if(buffer.startsWith("<fileresponse")){
+                    messageType = "fileresponse";
+                }
             }
             while (!buffer.endsWith("</"+messageType+">")) {
                 buffer = buffer + in.readLine();
@@ -168,8 +189,24 @@ public class ChatConnection extends Thread{
         return connectedUserName;
     }
 
+    public Socket getClientSocket() {
+        return clientSocket;
+    }
+
     public void setSession(ChatSession session) {
         this.session = session;
+    }
+
+    public ChatSession getSession() {
+        return session;
+    }
+
+    public void setFileToTransfer(File fileToTransfer) {
+        this.fileToTransfer = fileToTransfer;
+    }
+
+    public void setActiveFileTransfer(FileTransferConnection activeFileTransfer) {
+        this.activeFileTransfer = activeFileTransfer;
     }
 
     public String getRequestMessage() {

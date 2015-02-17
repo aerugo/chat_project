@@ -11,7 +11,8 @@ public class ChatMessage implements Serializable{
     private String messageType;
     private String requestAnswer = "no";
     private String fileName = "message";
-    private int fileSize = 0;
+    private int fileRequestPort;
+    private long fileSize = 0;
 
     // Constructor for messages
     public ChatMessage(String author, Color color, String message, String type){
@@ -60,6 +61,17 @@ public class ChatMessage implements Serializable{
 
     public String getFileName() { return fileName; }
 
-    public int getFileSize() { return fileSize; }
+    public long getFileSize() { return fileSize; }
 
+    public int getFileRequestPort() {
+        return fileRequestPort;
+    }
+
+    public void setFileRequestPort(int fileRequestPort) {
+        this.fileRequestPort = fileRequestPort;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
+    }
 }
