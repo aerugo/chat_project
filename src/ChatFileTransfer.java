@@ -16,16 +16,19 @@ public class ChatFileTransfer {
     private ChatConnection connection;
     private ChatMessage message;
     private boolean activeTransfer;
+    private boolean sendMode;
 
     public ChatFileTransfer() {
-        startServerTimeoutThread();
+        this.sendMode = true;
+        startTimeOutThread();
     }
 
     public ChatFileTransfer(ChatMessage message, ChatConnection connection){
         this.connection = connection;
         this.message = message;
+        this.sendMode = false;
         this.acceptWindow = new ChatFileTransferAcceptWindow(connection, message, this);
-        startClientTimeoutThread();
+        startTimeOutThread();
     }
 
     public void openSendFileConnection(int port) {
@@ -72,6 +75,28 @@ public class ChatFileTransfer {
                 System.out.println("Request timeout!");
                 disconnect();
                 acceptWindow.dispose();
+                new ChatErrorPromptWindow("File transfer request timeout!");
+            }
+        }
+    };
+
+    Runnable timeOutThread = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                System.out.println("Starting timer...");
+                TimeUnit.SECONDS.sleep(60);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if(!activeTransfer){
+                System.out.println("Request timeout!");
+                disconnect();
+                if(sendMode){
+                    sendWindow.dispose();
+                } else {
+                    acceptWindow.dispose();
+                }
                 new ChatErrorPromptWindow("File transfer request timeout!");
             }
         }
@@ -260,6 +285,10 @@ public class ChatFileTransfer {
 
     public void startClientTimeoutThread(){
         new Thread(clientTimeoutThread).start();
+    }
+
+    public void startTimeOutThread(){
+        new Thread(timeOutThread).start();
     }
 
     public ChatFileTransferSendWindow getSendWindow() {

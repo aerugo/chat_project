@@ -147,6 +147,19 @@ public class ChatMessageEncoderDecoder {
                 }
                 message = next;
             }
+
+            // Look for encrypted parts
+            Scanner encryptionParser = new Scanner(message);
+            messageParser.useDelimiter("<|>");
+            String nextPart = "";
+            String fullMessage = "";
+            while (messageParser.hasNext()) {
+                while (!next.startsWith("encrypted")) {
+                    next = messageParser.next();
+                }
+            }
+
+
             return new ChatMessage(author, color, message, messageType);
         }
 
