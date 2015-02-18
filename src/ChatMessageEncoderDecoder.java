@@ -1,5 +1,7 @@
 import java.awt.*;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by hugiasgeirsson on 12/02/15.
@@ -131,9 +133,6 @@ public class ChatMessageEncoderDecoder {
                 while (!next.startsWith("message")) {
                     next = messageParser.next();
                 }
-                while (!next.startsWith("text")) {
-                    next = messageParser.next();
-                }
                 messageParser.useDelimiter("\\Z");
                 next = messageParser.next();
                 if (next.startsWith(">")) {
@@ -142,23 +141,64 @@ public class ChatMessageEncoderDecoder {
                 if (next.endsWith("</message>")) {
                     next = next.substring(0, next.length() - 10);
                 }
+                message = next;
+            }
+
+            //Look for encrypted parts
+            Scanner encryptionParser = new Scanner(message);
+            Pattern pattern = Pattern.compile("<tag>(.+?)</tag>");
+            Matcher matcher = pattern.matcher("<tag>String I want to extract</tag>");
+            encryptionParser.useDelimiter("<|>");
+            String nextPart = "";
+            String fullMessage = "";
+            String encryptionType = "NONE";
+
+            while (encryptionParser.hasNext()) {
+                while (!nextPart.startsWith("encrypted") & encryptionParser.hasNext()) {
+                    nextPart = encryptionParser.next();
+                    fullMessage = fullMessage + nextPart;
+                }
+
+                if (encryptionParser.hasNext()) {
+                    String[] splitString = nextPart.split("type=\"");
+                    if (splitMessage.length > 1) {
+                        encryptionType = splitMessage[1].split("\"")[0];
+                    } else {
+                        encryptionType = splitMessage[0].split("\"")[0];
+                    }
+                }
+
+                String encryptedString = "";
+                while (!nextPart.startsWith("/encrypted") & encryptionParser.hasNext()) {
+                    String encryptedPart = encryptionParser.next();
+                    encryptedString = encryptedString + nextPart;
+                }
+
+                fullMessage = fullMessage + encryptedString.toUpperCase();
+            }
+
+            if(fullMessage.equals("")){
+                fullMessage = message;
+            }
+
+            // Get text string
+            Scanner textParser = new Scanner(fullMessage);
+            textParser.useDelimiter("<|>");
+            if (textParser.hasNext()) {
+                next = "";
+                while (!next.startsWith("text")) {
+                    next = textParser.next();
+                }
+                messageParser.useDelimiter("\\Z");
+                next = textParser.next();
+                if (next.startsWith(">")) {
+                    next = next.substring(1);
+                }
                 if (next.endsWith("</text>")) {
                     next = next.substring(0, next.length() - 7);
                 }
                 message = next;
             }
-
-            // Look for encrypted parts
-            Scanner encryptionParser = new Scanner(message);
-            messageParser.useDelimiter("<|>");
-            String nextPart = "";
-            String fullMessage = "";
-            while (messageParser.hasNext()) {
-                while (!next.startsWith("encrypted")) {
-                    next = messageParser.next();
-                }
-            }
-
 
             return new ChatMessage(author, color, message, messageType);
         }
