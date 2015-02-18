@@ -11,8 +11,7 @@ public class ChatConnection extends Thread{
     private String connectedUserName;
     private String requestMessage;
     private File fileToTransfer;
-    private ChatFileSend fileSend;
-    private ChatFileAcceptDaemon acceptDaemon;
+    private ChatFileTransfer fileSend;
     private PrintWriter out;
     private BufferedReader in;
     private boolean done;
@@ -60,8 +59,7 @@ public class ChatConnection extends Thread{
             return;
         }
 
-        // Kommer vi hit gick anslutningen bra.
-        // Vi skriver ut IP-nummret från klienten
+        // Connection successful
         System.out.println("Connection Established: "
                 + clientSocket.getInetAddress());
 
@@ -95,67 +93,84 @@ public class ChatConnection extends Thread{
                     + clientSocket.getInetAddress()
                     + ") ";
 
-            if(message.getMessageType().equals("request")||
-                    message.getMessageType().equals("filerequest")||
-                    message.getMessageType().equals("fileresponse")) {
-                this.requestMessage = message.getMessageString();
-            }
+            if(!done){
+                if(message.getMessageType().equals("request")||
+                        message.getMessageType().equals("filerequest")||
+                        message.getMessageType().equals("fileresponse")) {
+                    this.requestMessage = message.getMessageString();
+                }
 
-            if(message.getMessageType().equals("filerequest")) {
-                System.out.println("Filerequest is received!");
-                acceptDaemon = new ChatFileAcceptDaemon(message, this);
-            }
+                if(message.getMessageType().equals("filerequest")) {
+                    System.out.println("Filerequest is received!");
+                    new ChatFileTransfer(message, this);
+                }
 
-            if(message.getMessageType().equals("fileresponse")) {
-                System.out.println("Fileresponse is received!");
-                if (message.getRequestAnswer().equals("yes")){
-                    Runnable sendTask = new Runnable() {
-                        public void run() {
-                            fileSend.getSendWindow().setRequestReply("File accepted! Message: " + message.getMessageString());
-                            fileSend.openFileConnection(message.getFileRequestPort());
-                            fileSend.sendFile(fileToTransfer);
-                        }
-                    };
-                    new Thread(sendTask).start();
-                } else{
-                    fileSend.getSendWindow().setRequestReply("Transfer not accepted. Message: "+ message.getMessageString());
+                if(message.getMessageType().equals("fileresponse")) {
+                    System.out.println("Fileresponse is received!");
+                    if (message.getRequestAnswer().equals("yes")){
+                        Runnable sendTask = new Runnable() {
+                            public void run() {
+                                fileSend.getSendWindow().setRequestReply("File accepted! Message: " + message.getMessageString());
+                                fileSend.openSendFileConnection(message.getFileRequestPort());
+                                fileSend.sendFile(fileToTransfer);
+                            }
+                        };
+                        new Thread(sendTask).start();
+                    } else{
+                        fileSend.getSendWindow().setRequestReply("Transfer not accepted. Message: "+ message.getMessageString());
+                    }
+                }
+
+                if(message.getMessageType().equals("message")) {
+                    session.getWindow().printMessage(message);
+
+                    if (session.getHostAddress().equals("server") & !done) {
+                        session.sendMessageToAll(message);
+                    }
+                }
+
+                System.out.println(echo);
+
+                if(session.getHostAddress().equals("server")) {
+                    try {
+                        connectedUserName = message.getMessageAuthor();
+                    } catch (NullPointerException e) {
+                        System.out.println("No name available");
+                        connectedUserName = "Unknown";
+                    }
                 }
             }
 
-            if(message.getMessageType().equals("message")) {
-                session.getWindow().printMessage(message);
-
-                if (session.getHostAddress().equals("server") & !done) {
-                    session.sendMessageToAll(message);
-                }
-            }
-
-            System.out.println(echo);
-
-            if(session.getHostAddress().equals("server")) {
-                try {
-                    connectedUserName = message.getMessageAuthor();
-                } catch (NullPointerException e) {
-                    System.out.println("No name available");
-                    connectedUserName = "Unknown";
-                }
-            }
         }
 
         // Reach here when connection is done
 
         disconnect();
-        session.removeConnectionFromUserChooser(this);
-        System.out.println(this + " disconnected!");
     }
 
     private void disconnect(){
-        try{
+        try {
             in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            out.flush();
             out.close();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+        try {
             clientSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try{
             session.getConnectionList().remove(this);
+            session.removeConnectionFromUserChooser(this);
+            System.out.println(this + " disconnected!");
         }catch(Exception e){
+            System.out.println("Error when disconnecting: " + e);
         }
     }
 
@@ -211,7 +226,7 @@ public class ChatConnection extends Thread{
         this.fileToTransfer = fileToTransfer;
     }
 
-    public void setFileSend(ChatFileSend fileSend) {
+    public void setFileSend(ChatFileTransfer fileSend) {
         this.fileSend = fileSend;
     }
 

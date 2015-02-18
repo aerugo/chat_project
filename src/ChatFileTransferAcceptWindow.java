@@ -8,23 +8,24 @@ import java.io.File;
  * Created by hugiasgeirsson on 15/02/15.
  */
 public class ChatFileTransferAcceptWindow extends JFrame implements ActionListener{
-    ChatConnection connection;
-    ChatMessage message;
-    ChatFileAcceptDaemon daemon;
-    int fileTransferPort;
-    String requestMessage;
-    JTextField replyMessageField;
-    String fileName;
-    long fileSize;
-    JButton okButton;
-    JButton rejectButton;
-    JProgressBar progressBar;
+    private ChatConnection connection;
+    private ChatMessage message;
+    private ChatFileTransfer fileTransfer;
+    private JTextField requestMessageLabel;
+    private int fileTransferPort;
+    private String requestMessage;
+    private JTextField replyMessageField;
+    private String fileName;
+    private long fileSize;
+    private JButton okButton;
+    private JButton rejectButton;
+    private JProgressBar progressBar;
 
-    public ChatFileTransferAcceptWindow(ChatConnection connection, ChatMessage message, ChatFileAcceptDaemon daemon){
+    public ChatFileTransferAcceptWindow(ChatConnection connection, ChatMessage message, ChatFileTransfer fileAccept){
 
         this.connection = connection;
         this.message = message;
-        this.daemon = daemon;
+        this.fileTransfer = fileAccept;
         this.fileTransferPort = message.getFileRequestPort();
         this.requestMessage = message.getMessageString();
         this.fileName = message.getFileName();
@@ -33,7 +34,7 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
         setTitle("File transfer from " + connection.getConnectedUserName());
         setResizable(false);
 
-        JLabel requestMessageLabel = new JLabel(requestMessage);
+        requestMessageLabel = new JTextField(requestMessage);
         okButton = new JButton("Ok");
         okButton.setSize(new Dimension(50, 20));
         okButton.addActionListener(this);
@@ -74,13 +75,16 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
     public void actionPerformed(ActionEvent e) {
 
         if(e.getSource() == rejectButton){
-            daemon.disconnect();
+            fileTransfer.disconnect();
             dispose();
         }
 
         if(e.getSource() == okButton){
-            okButton.setEnabled(false);
-            daemon.start();
+            boolean fileSet = fileTransfer.setFileToSave();
+            if(fileSet){
+                okButton.setEnabled(false);
+                fileTransfer.startAcceptFileThread();
+            }
         }
     }
 
@@ -95,4 +99,6 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
     }
 
     public String getReplyMessageString() {return replyMessageField.getText();}
+
+    public void setRequestMessageLabel(String text) {requestMessageLabel.setText(text);}
 }

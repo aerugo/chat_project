@@ -9,7 +9,7 @@ import java.io.File;
  */
 public class ChatFileTransferSendWindow extends JFrame implements ActionListener{
     ChatConnection mainConnection;
-    ChatFileSend fileSend;
+    ChatFileTransfer fileSend;
     JTextField requestMessage;
     JLabel requestMessageLabel;
     JButton sendButton;
@@ -100,10 +100,9 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
             ChatMessage fileSendMessage = new ChatMessage(fileName.getText(),
                     requestMessage.getText(),(int)file.length());
             mainConnection.sendMessage(fileSendMessage);
-            fileSend = new ChatFileSend();
+            fileSend = new ChatFileTransfer();
             fileSend.setSendWindow(this);
             mainConnection.setFileSend(fileSend);
-
         }
     }
 
