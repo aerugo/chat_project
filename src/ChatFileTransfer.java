@@ -44,42 +44,6 @@ public class ChatFileTransfer {
         }
     }
 
-    Runnable serverTimeoutThread = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                System.out.println("Starting timer...");
-                TimeUnit.SECONDS.sleep(60);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if(!activeTransfer){
-                System.out.println("Request timeout!");
-                disconnect();
-                sendWindow.dispose();
-                new ChatErrorPromptWindow("File transfer request timeout!");
-            }
-        }
-    };
-
-    Runnable clientTimeoutThread = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                System.out.println("Starting timer...");
-                TimeUnit.SECONDS.sleep(60);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if(!activeTransfer){
-                System.out.println("Request timeout!");
-                disconnect();
-                acceptWindow.dispose();
-                new ChatErrorPromptWindow("File transfer request timeout!");
-            }
-        }
-    };
-
     Runnable timeOutThread = new Runnable() {
         @Override
         public void run() {
@@ -277,14 +241,6 @@ public class ChatFileTransfer {
 
     public void startAcceptFileThread(){
         new Thread(acceptFileThread).start();
-    }
-
-    public void startServerTimeoutThread(){
-        new Thread(serverTimeoutThread).start();
-    }
-
-    public void startClientTimeoutThread(){
-        new Thread(clientTimeoutThread).start();
     }
 
     public void startTimeOutThread(){

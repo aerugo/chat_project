@@ -9,7 +9,6 @@ import java.awt.event.*;
 
 
 public class ChatSessionWindow extends JFrame implements ActionListener{
-    private JPanel controlPanel;
     private JTextPane displayPane;
     private JTextArea editorPane;
     private JButton sendButton;
@@ -18,7 +17,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
     private JButton colorChooserButton;
     private JButton kickUser;
     private JButton sendFileButton;
-    private JButton encryptionOptionsButton;
+    private JComboBox encryptionChooser;
     private JComboBox kickUserChooser;
     private JComboBox sendFileUserChooser;
 
@@ -36,12 +35,12 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         }
         this.setTitle(windowType + session.getChatName());
 
-        setPreferredSize(new Dimension(300, 700));
+        setPreferredSize(new Dimension(400, 700));
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         Dimension buttonSize = new Dimension(50, 20);
 
         JPanel chatPanel = new JPanel();
-        controlPanel = new JPanel();
+        JPanel controlPanel = new JPanel();
         displayPane = new JTextPane();
         JScrollPane displayScrollPane = new JScrollPane(displayPane);
         displayPane.setPreferredSize(new Dimension(300, 300));
@@ -64,26 +63,28 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         kickUser.addActionListener(this);
         sendFileButton = new JButton("Send file");
         sendFileButton.addActionListener(this);
-        encryptionOptionsButton = new JButton("Encryption");
-        encryptionOptionsButton.addActionListener(this);
+
+        String [] encryptionOptions = {"Encryption: None","Encryption: AES","Encryption: Caesar"};
+        encryptionChooser = new JComboBox(encryptionOptions);
+        encryptionChooser.addActionListener(this);
         kickUserChooser = new JComboBox(session.getUserChooserModel());
         sendFileUserChooser = new JComboBox(session.getUserChooserModel());
 
         add(chatPanel);
-        chatPanel.setPreferredSize(new Dimension(300, 600));
+        chatPanel.setPreferredSize(new Dimension(400, 600));
         GroupLayout layout = new GroupLayout(chatPanel);
         chatPanel.setLayout(layout);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
 
-        controlPanel.setLayout(new GridLayout(4,2));
+        controlPanel.setLayout(new GridLayout(4, 2));
         controlPanel.add(colorChooserButton);
         controlPanel.add(sendButton);
         controlPanel.add(sendFileUserChooser);
         controlPanel.add(sendFileButton);
         controlPanel.add(kickUserChooser);
         controlPanel.add(kickUser);
-        controlPanel.add(encryptionOptionsButton);
+        controlPanel.add(encryptionChooser);
         controlPanel.add(disconnectButton);
 
         JPanel dividerPanel = new JPanel();
@@ -187,6 +188,10 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
 
         if(e.getSource() == sendFileButton){
             new ChatFileTransferSendWindow((ChatConnection) sendFileUserChooser.getSelectedItem());
+        }
+
+        if(e.getSource() == encryptionChooser){
+            chatSession.setSessionEncryption(encryptionChooser.getSelectedItem().toString());
         }
 
     }

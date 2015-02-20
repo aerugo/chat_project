@@ -18,15 +18,16 @@ public class ChatSession {
     private ServerSocket serverSocket;
     private ChatSessionWindow window;
     private ArrayList<ChatConnection> connectionList;
+    private String sessionEncryption = "None";
     private DefaultComboBoxModel userChooserModel;
-    ChatMessageEncoderDecoder encoderDecoder;
+    ChatMessageXMLAdapter encoderDecoder = new ChatMessageXMLAdapter(this);
     Boolean connected;
 
+    //Client constructor
     public ChatSession(String hostAddress, int port, String userName, String chatName) {
         this.hostAddress = hostAddress;
         this.port = port;
         this.chatName = chatName;
-        this.encoderDecoder = new ChatMessageEncoderDecoder();
         this.userChooserModel = new DefaultComboBoxModel();
         setUserName(userName);
         setMessageColor(new Color(0,0,255));
@@ -34,11 +35,11 @@ public class ChatSession {
         startListening();
     }
 
+    //Server constructor
     public ChatSession(ServerSocket serverSocket, String userName, String chatName){
         this.hostAddress = "server";
         this.port = serverSocket.getLocalPort();
         this.chatName = chatName;
-        this.encoderDecoder = new ChatMessageEncoderDecoder();
         this.connected = true;
         this.userChooserModel = new DefaultComboBoxModel();
         setUserName(userName);
@@ -161,5 +162,13 @@ public class ChatSession {
 
     public String getConnectRequestMessage() {
         return connectRequestMessage;
+    }
+
+    public String getSessionEncryption() {
+        return sessionEncryption;
+    }
+
+    public void setSessionEncryption(String sessionEncryption) {
+        this.sessionEncryption = sessionEncryption;
     }
 }

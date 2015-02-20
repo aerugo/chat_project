@@ -1,14 +1,12 @@
 import java.awt.*;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by hugiasgeirsson on 12/02/15.
  */
-public class ChatMessageEncoderDecoder {
+public class __OLD__ChatMessageEncoderDecoder {
 
-    public ChatMessageEncoderDecoder(){}
+    public __OLD__ChatMessageEncoderDecoder(){}
 
     public String chatMessageToXML(ChatMessage chatMessage){
         String message = chatMessage.getMessageString();
@@ -38,7 +36,7 @@ public class ChatMessageEncoderDecoder {
         }
         else {
             return "<message sender=\"" + author + "\">" +
-                    "<text color=" + rgbToHex(color) + "\">" +
+                    "<text color=\"" + rgbToHex(color) + "\">" +
                     message +
                     "</text></message>";
         }
@@ -120,7 +118,7 @@ public class ChatMessageEncoderDecoder {
                 next = colorParser.next();
             }
             String[] splitMessage = next.split("color=\"");
-            hexColor = splitMessage[0].split("\"")[0].substring(6);
+            hexColor = splitMessage[1].split("\"")[0];
             if (hexColor.length() == 7 & hexColor.startsWith("#")) {
                 color = Color.decode(hexColor);
             }
@@ -144,7 +142,7 @@ public class ChatMessageEncoderDecoder {
                 message = next;
             }
 
-            //Look for encrypted parts
+            /*//Look for encrypted parts
             Scanner encryptionParser = new Scanner(message);
             Pattern pattern = Pattern.compile("<tag>(.+?)</tag>");
             Matcher matcher = pattern.matcher("<tag>String I want to extract</tag>");
@@ -179,10 +177,10 @@ public class ChatMessageEncoderDecoder {
 
             if(fullMessage.equals("")){
                 fullMessage = message;
-            }
+            }*/
 
             // Get text string
-            Scanner textParser = new Scanner(fullMessage);
+            Scanner textParser = new Scanner(message);
             textParser.useDelimiter("<|>");
             if (textParser.hasNext()) {
                 next = "";

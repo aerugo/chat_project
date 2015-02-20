@@ -8,28 +8,19 @@ import java.io.File;
  * Created by hugiasgeirsson on 15/02/15.
  */
 public class ChatFileTransferAcceptWindow extends JFrame implements ActionListener{
-    private ChatConnection connection;
-    private ChatMessage message;
     private ChatFileTransfer fileTransfer;
     private JTextField requestMessageLabel;
-    private int fileTransferPort;
-    private String requestMessage;
     private JTextField replyMessageField;
-    private String fileName;
-    private long fileSize;
     private JButton okButton;
     private JButton rejectButton;
     private JProgressBar progressBar;
 
     public ChatFileTransferAcceptWindow(ChatConnection connection, ChatMessage message, ChatFileTransfer fileAccept){
 
-        this.connection = connection;
-        this.message = message;
         this.fileTransfer = fileAccept;
-        this.fileTransferPort = message.getFileRequestPort();
-        this.requestMessage = message.getMessageString();
-        this.fileName = message.getFileName();
-        this.fileSize = message.getFileSize();
+        String requestMessage = message.getMessageString();
+        String fileName = message.getFileName();
+        long fileSize = message.getFileSize();
 
         setTitle("File transfer from " + connection.getConnectedUserName());
         setResizable(false);
@@ -44,7 +35,7 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
         replyMessageField = new JTextField("Reply message: File accepted");
         JPanel controlPanel = new JPanel();
         JLabel fileNameLabel = new JLabel(fileName);
-        JLabel fileSizeLabel = new JLabel(String.valueOf(fileSize*0.001) + " kb");
+        JLabel fileSizeLabel = new JLabel(String.valueOf(fileSize *0.001) + " kb");
         JPanel fileInfo = new JPanel();
         progressBar = new JProgressBar();
 
