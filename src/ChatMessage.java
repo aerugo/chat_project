@@ -11,6 +11,9 @@ public class ChatMessage implements Serializable{
     private String messageType;
     private String requestAnswer = "no";
     private String fileName = "message";
+    private String keyRequestType;
+    private String encryptionType = "None";
+    private String encryptedContent;
     private int fileRequestPort;
     private long fileSize = 0;
 
@@ -39,6 +42,12 @@ public class ChatMessage implements Serializable{
         this.messageColor = new Color(255,255,255);
         this.fileName = fileName;
         this.fileSize = fileSize;
+    }
+
+    // Constructor for minimal message
+    public ChatMessage(String message){
+        this.messageString = message;
+        this.messageColor = new Color(255,255,255);
     }
 
     public String getMessageString() {
@@ -73,5 +82,13 @@ public class ChatMessage implements Serializable{
 
     public void setMessageType(String messageType) {
         this.messageType = messageType;
+    }
+
+    public String getKeyRequestType() {
+        return keyRequestType;
+    }
+
+    public void setKeyRequestType(String keyRequestType) {
+        this.keyRequestType = keyRequestType;
     }
 }

@@ -9,6 +9,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Scanner;
 
 /**
  * Created by hugiasgeirsson on 12/02/15.
@@ -18,8 +19,15 @@ public class ChatMessageXMLAdapter {
     Document documentRepresentation;
     Element messageRootElement;
     Color messageColor;
+    String encryptedColor;
+    ChatSession session;
+    byte[] encryptionKey;
 
-    public ChatMessageXMLAdapter(ChatSession session){}
+    public ChatMessageXMLAdapter(ChatSession session){
+
+        this.session = session;
+
+    }
 
     // Convert ChatMessage to XML
 
@@ -31,6 +39,7 @@ public class ChatMessageXMLAdapter {
         Color color = chatMessage.getMessageColor();
         String requestAnswer = chatMessage.getRequestAnswer();
         int fileRequestPort = chatMessage.getFileRequestPort();
+        String keyRequestType = chatMessage.getKeyRequestType();
 
         message = message.replaceAll("&","&amp;");
         message = message.replaceAll("<","&lt;");
@@ -54,12 +63,27 @@ public class ChatMessageXMLAdapter {
             return "<fileresponse reply=\"" + requestAnswer + "\" port=\"" + fileRequestPort + "\">" +
                     message +
                     "</fileresponse>";
+        } else if (chatMessage.getMessageType().equals("keyrequest")) {
+            return "<keyrequest type=\"" + keyRequestType + "\">" +
+                    message +
+                    "</keyrequest>";
+        } else if (chatMessage.getMessageType().equals("keyresponse")) {
+            return "<keyresponse key=\"" + session.encryptDecrypt.getAESKeyString() + "\">" +
+                    message +
+                    "</keyresponse>";
         }
         else {
+
+            String content = "<text color=\"" + rgbToHex(color) + "\">" + message + "</text>";
+
+            if(!session.getSessionEncryption().equals("None")){
+                content = "<encrypted type=\"" + session.getSessionEncryption() + "\">"
+                        + session.encryptDecrypt.encryptWithType(content, session.getSessionEncryption())
+                        + "</encrypted>";
+            }
+
             return "<message sender=\"" + author + "\">" +
-                    "<text color=\"" + rgbToHex(color) + "\">" +
-                    message +
-                    "</text></message>";
+                    content + "</message>";
         }
     }
 
@@ -100,10 +124,10 @@ public class ChatMessageXMLAdapter {
 
     public String getMessageType(){
         String messageType;
-        if(messageRootElement.getFirstChild().getNodeName().equals("disconnect")){
-            messageType = "disconnect";
-        } else {
-            messageType = messageRootElement.getTagName();
+        messageType = messageRootElement.getTagName();
+        if (messageRootElement.getFirstChild() != null){
+            if(messageRootElement.getFirstChild().getNodeName().equals("disconnect")){
+                messageType = "disconnect";}
         }
         return messageType;
     }
@@ -115,6 +139,8 @@ public class ChatMessageXMLAdapter {
     public String getRequestReply(){
         return messageRootElement.getAttribute("reply");
     }
+
+    public String getKeyRequestType() {return messageRootElement.getAttribute("type");}
 
     public String getFileRequestFileName(){
         return messageRootElement.getAttribute("filename");
@@ -130,7 +156,8 @@ public class ChatMessageXMLAdapter {
 
     public String getMessageContents(){
         String messageContents = "";
-        String color = "";
+        String text;
+        String color = "#ff0000";
         Node contentPart = messageRootElement.getFirstChild();
         while (contentPart != null) {
             if (contentPart.getNodeName().equals("text")) {
@@ -138,9 +165,15 @@ public class ChatMessageXMLAdapter {
                 color = contentPart.getAttributes().getNamedItem("color").getNodeValue();
             } else if (contentPart.getNodeName().equals("encrypted")) {
                 String encryptionType = contentPart.getAttributes().getNamedItem("type").getNodeValue();
-                String key = contentPart.getAttributes().getNamedItem("key").getNodeValue();
-                String decryptedPart = decryptString(encryptionType, key);
-                messageContents = messageContents + decryptedPart;
+                String encryptedPart = contentPart.getTextContent();
+                String decryptedPart = decryptString(encryptedPart, encryptionType);
+                if(decryptedPart.startsWith("<text")){
+                    text = textScanner(decryptedPart);
+                    color = encryptedColor;
+                } else {
+                    text = decryptedPart;
+                }
+                messageContents = messageContents + text;
             }
             contentPart = contentPart.getNextSibling();
         }
@@ -152,8 +185,49 @@ public class ChatMessageXMLAdapter {
         return  messageRootElement.getTextContent();
     }
 
-    public String decryptString(String encryptionType, String key){
-        return " DECRYPTED ";
+    public String decryptString(String encryptedString, String encryptionType){
+        if(encryptionKey != null){
+            return session.encryptDecrypt.decryptWithType(encryptedString, encryptionType, encryptionKey);
+        }
+        return "__ENCRYPTED STRING, NEED KEY FROM USER___ ";
+    }
+
+    public String textScanner(String textXML){
+        // Get text string
+        String message = "";
+        Scanner textParser = new Scanner(textXML);
+        textParser.useDelimiter("<|>");
+        if (textParser.hasNext()) {
+            String text = "";
+            while (!text.startsWith("text") & textParser.hasNext()) {
+                text = textParser.next();
+            }
+            textParser.useDelimiter("\\Z");
+            text = textParser.next();
+            if (text.startsWith(">")) {
+                text = text.substring(1);
+            }
+            if (text.endsWith("</text>")) {
+                text = text.substring(0, text.length() - 7);
+            }
+            message = text;
+        }
+
+        // Get color
+        Scanner colorParser = new Scanner(textXML);
+        colorParser.useDelimiter("<text\\s|</text>");
+        String hexColor;
+        String text = "";
+        while (!text.startsWith("color=") & colorParser.hasNext()) {
+            text = colorParser.next();
+        }
+        String[] splitMessage = text.split("color=\"");
+        hexColor = splitMessage[1].split("\"")[0];
+        if (hexColor.length() == 7 & hexColor.startsWith("#")) {
+            encryptedColor = hexColor;
+        }
+
+        return message;
     }
 
     public ChatMessage xmlToChatMessage(){
@@ -186,14 +260,30 @@ public class ChatMessageXMLAdapter {
             response.setMessageType("fileresponse");
             return response;
         }
+        else if (messageType.equals("keyrequest")){
+            String contents = getRequestMessage();
+            ChatMessage keyRequest = new ChatMessage(contents);
+            keyRequest.setMessageType("keyrequest");
+            keyRequest.setKeyRequestType(getKeyRequestType());
+            return keyRequest;
+        }
+        else if (messageType.equals("keyresponse")){
+            String contents = getRequestMessage();
+            ChatMessage keyResponse = new ChatMessage(contents);
+            keyResponse.setMessageType("keyresponse");
+            return keyResponse;
+        }
         else {
             return new ChatMessage("Unknown", Color.black, "Unknown message type received", "message");
         }
     }
 
-    public ChatMessage xmlToChatMessage(String XML){
+    public ChatMessage xmlToChatMessage(String XML, ChatConnection parentConnection){
         getDocumentFromXML(XML);
-        return xmlToChatMessage();
+        encryptionKey = parentConnection.getConnectedUserKey();
+        ChatMessage message = xmlToChatMessage();
+        encryptionKey = "".getBytes();
+        return message;
     }
 
 }

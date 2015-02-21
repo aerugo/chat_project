@@ -20,7 +20,8 @@ public class ChatSession {
     private ArrayList<ChatConnection> connectionList;
     private String sessionEncryption = "None";
     private DefaultComboBoxModel userChooserModel;
-    ChatMessageXMLAdapter encoderDecoder = new ChatMessageXMLAdapter(this);
+    ChatMessageXMLAdapter xmlAdapter = new ChatMessageXMLAdapter(this);
+    ChatMessageEncryptDecrypt encryptDecrypt = new ChatMessageEncryptDecrypt();
     Boolean connected;
 
     //Client constructor
@@ -77,6 +78,16 @@ public class ChatSession {
         if(!connectionList.isEmpty()){
             for(ChatConnection connection : connectionList){
                 connection.sendMessage(message);
+            }
+        }
+    }
+
+    public void forwardMessageToAll(ChatMessage message, ChatConnection incomingConnection){
+        if(!connectionList.isEmpty()){
+            for(ChatConnection connection : connectionList){
+                if(connection != incomingConnection){
+                    connection.sendMessage(message);
+                }
             }
         }
     }
@@ -170,5 +181,11 @@ public class ChatSession {
 
     public void setSessionEncryption(String sessionEncryption) {
         this.sessionEncryption = sessionEncryption;
+        if(sessionEncryption.equals("AES")){
+            encryptDecrypt.generateAESKey();
+            System.out.println("Public key: " + encryptDecrypt.getAESKeyString());
+        }
     }
+
+
 }

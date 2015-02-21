@@ -9,12 +9,14 @@ public class ChatConnection extends Thread{
     private Socket clientSocket;
     private ChatSession session;
     private String connectedUserName;
+    private byte[] connectedUserKey;
     private String requestMessage;
     private File fileToTransfer;
     private ChatFileTransfer fileSend;
     private PrintWriter out;
     private BufferedReader in;
     private boolean done;
+    ChatKeyRequestWindow keyRequestWindow;
 
 
     public ChatConnection(Socket clientSocket, ChatSession session){
@@ -28,7 +30,7 @@ public class ChatConnection extends Thread{
     }
 
     public void sendMessage(ChatMessage message){
-        String xmlMessage = session.encoderDecoder.chatMessageToXML(message);
+        String xmlMessage = session.xmlAdapter.chatMessageToXML(message);
         System.out.println(xmlMessage);
         try{
             out.println(xmlMessage);
@@ -40,6 +42,10 @@ public class ChatConnection extends Thread{
             System.out.println("read failed: " + e);
             session.getWindow().printNotification("read failed: " + e);
         }
+    }
+
+    public void sendKeyRequest(){
+        keyRequestWindow = new ChatKeyRequestWindow(this);
     }
 
     public void run(){
@@ -101,12 +107,12 @@ public class ChatConnection extends Thread{
                 }
 
                 if(message.getMessageType().equals("filerequest")) {
-                    System.out.println("Filerequest is received!");
+                    System.out.println("Filerequest received!");
                     new ChatFileTransfer(message, this);
                 }
 
-                if(message.getMessageType().equals("fileresponse")) {
-                    System.out.println("Fileresponse is received!");
+                else if(message.getMessageType().equals("fileresponse")) {
+                    System.out.println("Fileresponse received!");
                     if (message.getRequestAnswer().equals("yes")){
                         Runnable sendTask = new Runnable() {
                             public void run() {
@@ -120,12 +126,21 @@ public class ChatConnection extends Thread{
                         fileSend.getSendWindow().setRequestReply("Transfer not accepted. Message: "+ message.getMessageString());
                     }
                 }
-
+                else if(message.getMessageType().equals("keyrequest")) {
+                    System.out.println("Keyrequest received!");
+                    new ChatKeyResponseWindow(this, message);
+                }
+                else if(message.getMessageType().equals("keyresponse")) {
+                    System.out.println("Keyresponse received!");
+                    String key = message.getMessageString();
+                    setConnectedUserKey(session.encryptDecrypt.keyStringToBytes(key));
+                    System.out.println("Received key: " + key);
+                }
                 if(message.getMessageType().equals("message")) {
                     session.getWindow().printMessage(message);
 
                     if (session.getHostAddress().equals("server") & !done) {
-                        session.sendMessageToAll(message);
+                        session.forwardMessageToAll(message, this);
                     }
                 }
 
@@ -180,7 +195,7 @@ public class ChatConnection extends Thread{
         String messageType = "unknown";
 
         try {
-            while (messageType.equals("unknown")){
+            if (messageType.equals("unknown")){
                 buffer = in.readLine();
                 if(buffer.startsWith("<message")){
                     messageType = "message";
@@ -194,11 +209,17 @@ public class ChatConnection extends Thread{
                 if(buffer.startsWith("<fileresponse")){
                     messageType = "fileresponse";
                 }
+                if(buffer.startsWith("<keyrequest")){
+                    messageType = "keyrequest";
+                }
+                if(buffer.startsWith("<keyresponse")){
+                    messageType = "keyresponse";
+                }
             }
             while (!buffer.endsWith("</"+messageType+">")) {
                 buffer = buffer + in.readLine();
             }
-            message = session.encoderDecoder.xmlToChatMessage(buffer);
+            message = session.xmlAdapter.xmlToChatMessage(buffer, this);
         }catch(IOException e){
             System.out.println( this + " read failed: " + e);
             message = new ChatMessage("System",new Color(255,0,0),"Could not get message...","error");
@@ -232,6 +253,19 @@ public class ChatConnection extends Thread{
 
     public String getRequestMessage() {
         return requestMessage;
+    }
+
+    public void setConnectedUserKey(byte[] connectedUserKey) {
+        this.connectedUserKey = connectedUserKey;
+        keyRequestWindow.requestStatus.setText("Key received!");
+    }
+
+    public byte[] getConnectedUserKey() {
+        return connectedUserKey;
+    }
+
+    public ChatSession getSession() {
+        return session;
     }
 
     @Override

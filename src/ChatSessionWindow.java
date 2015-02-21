@@ -2,6 +2,8 @@
  * Created by hugiasgeirsson on 05/02/15.
  */
 
+import javafx.scene.control.Separator;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
@@ -17,9 +19,10 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
     private JButton colorChooserButton;
     private JButton kickUser;
     private JButton sendFileButton;
+    private JButton requestKeyButton;
+    private JButton encryptionChooserButton;
     private JComboBox encryptionChooser;
-    private JComboBox kickUserChooser;
-    private JComboBox sendFileUserChooser;
+    private JComboBox userChooser;
 
     public ChatSessionWindow(ChatSession session) {
         super("Amazochat");
@@ -35,19 +38,18 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         }
         this.setTitle(windowType + session.getChatName());
 
-        setPreferredSize(new Dimension(400, 700));
+        setPreferredSize(new Dimension(300, 700));
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         Dimension buttonSize = new Dimension(50, 20);
 
         JPanel chatPanel = new JPanel();
-        JPanel controlPanel = new JPanel();
         displayPane = new JTextPane();
         JScrollPane displayScrollPane = new JScrollPane(displayPane);
         displayPane.setPreferredSize(new Dimension(300, 300));
         displayPane.setEditable(false);
         editorPane = new JTextArea();
         editorPane.setLineWrap(true);
-        editorPane.setPreferredSize(new Dimension(300, 200));
+        editorPane.setPreferredSize(new Dimension(300, 100));
         JScrollPane editorScrollPane = new JScrollPane(editorPane);
         sendButton = new JButton("Send");
         sendButton.setSize(buttonSize);
@@ -63,29 +65,69 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         kickUser.addActionListener(this);
         sendFileButton = new JButton("Send file");
         sendFileButton.addActionListener(this);
+        requestKeyButton = new JButton("Request key");
+        requestKeyButton.addActionListener(this);
+        encryptionChooserButton = new JButton("Set encryption");
+        encryptionChooserButton.addActionListener(this);
 
-        String [] encryptionOptions = {"Encryption: None","Encryption: AES","Encryption: Caesar"};
-        encryptionChooser = new JComboBox(encryptionOptions);
+        encryptionChooser = new JComboBox(session.encryptDecrypt.getKnownTypesModel());
         encryptionChooser.addActionListener(this);
-        kickUserChooser = new JComboBox(session.getUserChooserModel());
-        sendFileUserChooser = new JComboBox(session.getUserChooserModel());
+        userChooser = new JComboBox(session.getUserChooserModel());
 
         add(chatPanel);
-        chatPanel.setPreferredSize(new Dimension(400, 600));
+        chatPanel.setPreferredSize(new Dimension(300, 600));
         GroupLayout layout = new GroupLayout(chatPanel);
         chatPanel.setLayout(layout);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
 
-        controlPanel.setLayout(new GridLayout(4, 2));
-        controlPanel.add(colorChooserButton);
-        controlPanel.add(sendButton);
-        controlPanel.add(sendFileUserChooser);
-        controlPanel.add(sendFileButton);
-        controlPanel.add(kickUserChooser);
-        controlPanel.add(kickUser);
-        controlPanel.add(encryptionChooser);
-        controlPanel.add(disconnectButton);
+        JPanel messagePanel = new JPanel();
+        messagePanel.setSize(new Dimension(300, 33));
+        messagePanel.setLayout(new GridLayout(2, 2));
+        messagePanel.add(colorChooserButton);
+        messagePanel.add(sendButton);
+        messagePanel.add(encryptionChooser);
+        messagePanel.add(encryptionChooserButton);
+
+        JPanel userInteractionPanel = new JPanel();
+        userInteractionPanel.setLayout(new GridLayout(3, 2));
+        userInteractionPanel.setSize(new Dimension(300, 50));
+        JLabel selectUserLabel = new JLabel("Select user:");
+        selectUserLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        userInteractionPanel.add(selectUserLabel);
+        userInteractionPanel.add(userChooser);
+        userInteractionPanel.add(sendFileButton);
+        userInteractionPanel.add(requestKeyButton);
+        userInteractionPanel.add(new JLabel(""));
+        userInteractionPanel.add(kickUser);
+
+        JPanel disconnectPanel = new JPanel();
+        disconnectPanel.setLayout(new GridLayout(1, 2));
+        disconnectPanel.setSize(new Dimension(300, 17));
+        JLabel endSessionLabel = new JLabel("End Session:");
+        endSessionLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        disconnectPanel.add(endSessionLabel);
+        disconnectPanel.add(disconnectButton);
+
+        JPanel controlTopPanel = new JPanel();
+        controlTopPanel.setLayout(new BorderLayout());
+        controlTopPanel.add(messagePanel, BorderLayout.NORTH);
+        controlTopPanel.add(new JSeparator(), BorderLayout.SOUTH);
+
+        JPanel controlCenterPanel = new JPanel();
+        controlCenterPanel.setLayout(new BorderLayout());
+        controlCenterPanel.add(userInteractionPanel, BorderLayout.NORTH);
+        controlCenterPanel.add(new JSeparator(), BorderLayout.SOUTH);
+
+        JPanel controlBottomPanel = new JPanel();
+        controlBottomPanel.setLayout(new BorderLayout());
+        controlBottomPanel.add(disconnectPanel, BorderLayout.NORTH);
+
+        JPanel controlPanel = new JPanel();
+        controlPanel.setLayout(new BorderLayout());
+        controlPanel.add(controlTopPanel, BorderLayout.NORTH);
+        controlPanel.add(controlCenterPanel, BorderLayout.CENTER);
+        controlPanel.add(controlBottomPanel, BorderLayout.SOUTH);
 
         JPanel dividerPanel = new JPanel();
         dividerPanel.setPreferredSize(new Dimension(300, 25));
@@ -111,7 +153,6 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
 
         if(!session.getHostAddress().equals("server")){
             kickUser.setVisible(false);
-            kickUserChooser.setVisible(false);
         }
 
         if(!session.connected & !session.getHostAddress().equals("server")){
@@ -150,9 +191,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         if(e.getSource() == sendButton & !editorPane.getText().equals("")){
             ChatMessage myMessage = chatSession.inputToChatMessage(chatSession.getUserName(),
                     chatSession.getMessageColor(), editorPane.getText());
-            if(chatSession.getHostAddress().equals("server")){
-                this.printMessage(myMessage);
-            }
+            this.printMessage(myMessage);
             if(!chatSession.getConnectionList().isEmpty()){
                 chatSession.sendMessageToAll(myMessage);
             }
@@ -176,7 +215,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
 
         if(e.getSource() == kickUser){
             if(!chatSession.getConnectionList().isEmpty()){
-                ChatConnection connection = (ChatConnection) kickUserChooser.getSelectedItem();
+                ChatConnection connection = (ChatConnection) userChooser.getSelectedItem();
                 chatSession.sendMessageToAll(new ChatMessage(
                         chatSession.getUserName(),
                         new Color(255,0,0),
@@ -187,11 +226,16 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
         }
 
         if(e.getSource() == sendFileButton){
-            new ChatFileTransferSendWindow((ChatConnection) sendFileUserChooser.getSelectedItem());
+            new ChatFileTransferSendWindow((ChatConnection) userChooser.getSelectedItem());
         }
 
-        if(e.getSource() == encryptionChooser){
+        if(e.getSource() == encryptionChooserButton){
             chatSession.setSessionEncryption(encryptionChooser.getSelectedItem().toString());
+        }
+
+        if(e.getSource() == requestKeyButton){
+            ChatConnection chosenConnection = (ChatConnection) userChooser.getSelectedItem();
+            chosenConnection.sendKeyRequest();
         }
 
     }

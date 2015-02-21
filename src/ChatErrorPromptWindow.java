@@ -27,6 +27,14 @@ public class ChatErrorPromptWindow extends JFrame implements ActionListener{
 
     }
 
+    public void closeWindow(){
+        this.dispose();
+    }
+
+    public void disableClose(){
+        okButton.setVisible(false);
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         dispose();
