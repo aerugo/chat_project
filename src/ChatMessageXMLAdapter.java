@@ -21,12 +21,11 @@ public class ChatMessageXMLAdapter {
     Color messageColor;
     String encryptedColor;
     ChatSession session;
-    byte[] encryptionKey;
+    byte[] aesEncryptionKey;
+    int caesarKey;
 
     public ChatMessageXMLAdapter(ChatSession session){
-
         this.session = session;
-
     }
 
     // Convert ChatMessage to XML
@@ -68,7 +67,7 @@ public class ChatMessageXMLAdapter {
                     message +
                     "</keyrequest>";
         } else if (chatMessage.getMessageType().equals("keyresponse")) {
-            return "<keyresponse key=\"" + session.encryptDecrypt.getAESKeyString() + "\">" +
+            return "<keyresponse key=\"" + session.encryptDecrypt.getKeyString(session.getSessionEncryption()) + "\">" +
                     message +
                     "</keyresponse>";
         }
@@ -186,14 +185,29 @@ public class ChatMessageXMLAdapter {
     }
 
     public String decryptString(String encryptedString, String encryptionType){
-        if(encryptionKey != null){
-            return session.encryptDecrypt.decryptWithType(encryptedString, encryptionType, encryptionKey);
+        if(encryptionType.equals("caesar")){
+            if(caesarKey != 0){
+                return session.encryptDecrypt.decryptCaesar(encryptedString, caesarKey);
+            }
+        }
+        if(encryptionType.equals("AES")) {
+            if (aesEncryptionKey != null) {
+                return session.encryptDecrypt.decryptStringAES(encryptedString, aesEncryptionKey);
+            }
         }
         return "__ENCRYPTED STRING, NEED KEY FROM USER___ ";
     }
 
     public String textScanner(String textXML){
         // Get text string
+
+        textXML = textXML.replaceAll("&amp;","&");
+        textXML = textXML.replaceAll("&lt;","<");
+        textXML = textXML.replaceAll("&gt;",">");
+        textXML = textXML.replaceAll("&quot;","\"");
+        textXML = textXML.replaceAll("&apos;","\'");
+        textXML = textXML.replaceAll("&;"," ");
+
         String message = "";
         Scanner textParser = new Scanner(textXML);
         textParser.useDelimiter("<|>");
@@ -280,9 +294,11 @@ public class ChatMessageXMLAdapter {
 
     public ChatMessage xmlToChatMessage(String XML, ChatConnection parentConnection){
         getDocumentFromXML(XML);
-        encryptionKey = parentConnection.getConnectedUserKey();
+        aesEncryptionKey = parentConnection.getConnectedUserAESKey();
+        caesarKey = parentConnection.getConnectedUserCaesarKey();
         ChatMessage message = xmlToChatMessage();
-        encryptionKey = "".getBytes();
+        aesEncryptionKey = "".getBytes();
+        caesarKey = 0;
         return message;
     }
 

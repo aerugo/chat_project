@@ -9,7 +9,8 @@ public class ChatConnection extends Thread{
     private Socket clientSocket;
     private ChatSession session;
     private String connectedUserName;
-    private byte[] connectedUserKey;
+    private byte[] connectedUserAESKey;
+    private int connectedUserCaesarKey;
     private String requestMessage;
     private File fileToTransfer;
     private ChatFileTransfer fileSend;
@@ -133,7 +134,7 @@ public class ChatConnection extends Thread{
                 else if(message.getMessageType().equals("keyresponse")) {
                     System.out.println("Keyresponse received!");
                     String key = message.getMessageString();
-                    setConnectedUserKey(session.encryptDecrypt.keyStringToBytes(key));
+                    setConnectedUserKey(keyRequestWindow.getRequestType(), key);
                     System.out.println("Received key: " + key);
                 }
                 if(message.getMessageType().equals("message")) {
@@ -255,13 +256,37 @@ public class ChatConnection extends Thread{
         return requestMessage;
     }
 
-    public void setConnectedUserKey(byte[] connectedUserKey) {
-        this.connectedUserKey = connectedUserKey;
-        keyRequestWindow.requestStatus.setText("Key received!");
+    public void setConnectedUserKey(String type, String key) {
+        if(type.equals("AES")){
+            connectedUserAESKey = session.encryptDecrypt.keyStringToBytes(key);
+            keyRequestWindow.requestStatus.setText("Key received!");
+        }
+        if(type.equals("caesar")){
+            connectedUserCaesarKey = Integer.parseInt(key);
+            keyRequestWindow.requestStatus.setText("Key received!");
+        }
     }
 
-    public byte[] getConnectedUserKey() {
-        return connectedUserKey;
+    public boolean hasConnectedUserKey(String type){
+        if(type.equals("caesar")){
+            if(connectedUserCaesarKey != 0){
+                return true;
+            }
+        }
+        else if(type.equals("AES")){
+            if (connectedUserAESKey != null){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public byte[] getConnectedUserAESKey() {
+        return connectedUserAESKey;
+    }
+
+    public int getConnectedUserCaesarKey() {
+        return connectedUserCaesarKey;
     }
 
     public ChatSession getSession() {

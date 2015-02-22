@@ -53,7 +53,10 @@ public class ChatKeyResponseWindow extends JFrame implements ActionListener{
         if(e.getSource() == sendKeyButton){
             String key = "";
             if(keyRequestType.equals("AES")){
-                key = connection.getSession().encryptDecrypt.getAESKeyString();
+                key = connection.getSession().encryptDecrypt.getKeyString("AES");
+            }
+            if(keyRequestType.equals("caesar")){
+                key = connection.getSession().encryptDecrypt.getKeyString("caesar");
             }
             ChatMessage keyResponse = new ChatMessage(key);
             keyResponse.setMessageType("keyresponse");

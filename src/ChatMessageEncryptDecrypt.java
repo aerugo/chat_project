@@ -5,7 +5,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Created by hugiasgeirsson on 20/02/15.
@@ -14,15 +14,15 @@ public class ChatMessageEncryptDecrypt {
     private KeyGenerator aesGenerator;
     private byte[] keyContent;
     private SecretKeySpec aesKey;
-    private String caesarKey;
+    private Character[] alphabet;
+    private java.util.List alphaList;
+    private int caesarKey;
     private ArrayList<String> knownTypes;
     DefaultComboBoxModel knownTypesModel;
 
     public ChatMessageEncryptDecrypt(){
         knownTypesModel = new DefaultComboBoxModel();
         knownTypes = new ArrayList<String>();
-        knownTypes.add("Caesar");
-        knownTypesModel.addElement("Caesar");
 
         Runnable keyGeneratorCreator = new Runnable() {
             @Override
@@ -30,6 +30,7 @@ public class ChatMessageEncryptDecrypt {
                 ChatErrorPromptWindow loadingPrompt = new ChatErrorPromptWindow("Creating key generators...");
                 loadingPrompt.disableClose();
                 createAESKeyGenerator();
+                generateCaesarKey();
                 loadingPrompt.closeWindow();
             }
         };
@@ -44,6 +45,53 @@ public class ChatMessageEncryptDecrypt {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+    }
+
+    public void generateCaesarKey(){
+        alphabet = new Character[]{'A', 'B', 'C', 'D', 'E', 'F','1', '2', '3', '4', '5', '6','7', '8', '9', '0'};
+        alphaList = Arrays.asList(alphabet);
+        alphabet = new Character[]{'A', 'B', 'C', 'D', 'E', 'F','A', 'B', 'C', 'D', 'E', 'F','1', '2', '3', '4', '5', '6','7', '8', '9', '0','1', '2', '3', '4', '5', '6','7', '8', '9', '0'};
+        caesarKey = 3;
+        knownTypes.add("caesar");
+        knownTypesModel.addElement("caesar");
+    }
+
+    public String encryptCaesar(String string){
+        byte[] data = string.getBytes();
+        String hexMessage = DatatypeConverter.printHexBinary(data);
+        String encrypted = "";
+        int index;
+        for(char c : hexMessage.toCharArray()){
+            index = alphaList.indexOf(c);
+            if(index + caesarKey > alphabet.length - 1){
+                index = index + caesarKey - alphabet.length;
+            } else {
+                index += caesarKey;
+            }
+            encrypted += alphabet[index];
+        }
+        return encrypted;
+    }
+
+    public String decryptCaesar(String string, int key){
+        String decrypted = "";
+        int index;
+        for(char c : string.toCharArray()){
+            index = alphaList.indexOf(c);
+            if(index - key < 0){
+                index = alphabet.length-caesarKey;
+            } else{
+                index -= caesarKey;
+            }
+            decrypted += alphabet[index];
+        }
+        byte[] data = DatatypeConverter.parseHexBinary(decrypted);
+        try {
+            decrypted = new String(data, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return decrypted;
     }
 
     public void generateAESKey(){
@@ -101,18 +149,23 @@ public class ChatMessageEncryptDecrypt {
         if(type.equals("AES")){
             return encryptStringAES(message);
         }
-        else return "";
-    }
-
-    public String decryptWithType(String message, String type, byte[] key){
-        if(type.equals("AES")){
-            return decryptStringAES(message, key);
+        if(type.equals("caesar")){
+            return encryptCaesar(message);
         }
         else return "";
     }
 
-    public String getAESKeyString(){
-        return DatatypeConverter.printHexBinary(keyContent);
+    public String getKeyString(String type){
+        if(type.equals("AES")){
+            return DatatypeConverter.printHexBinary(keyContent);
+
+        }
+        if (type.equals("caesar")){
+            return Integer.toString(caesarKey);
+        }
+        else{
+            return "";
+        }
     }
 
     public byte[] keyStringToBytes(String key){

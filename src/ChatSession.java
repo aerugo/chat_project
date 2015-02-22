@@ -181,10 +181,7 @@ public class ChatSession {
 
     public void setSessionEncryption(String sessionEncryption) {
         this.sessionEncryption = sessionEncryption;
-        if(sessionEncryption.equals("AES")){
-            encryptDecrypt.generateAESKey();
-            System.out.println("Public key: " + encryptDecrypt.getAESKeyString());
-        }
+        this.encryptDecrypt.generateAESKey();
     }
 
 

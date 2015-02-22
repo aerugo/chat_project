@@ -14,6 +14,7 @@ public class ChatKeyRequestWindow extends JFrame implements ActionListener{
     JButton sendRequestButton;
     JComboBox encryptionTypeChooser;
     JTextField requestMessage;
+    String requestType;
 
     public ChatKeyRequestWindow(ChatConnection connection){
         setTitle("Sending key request");
@@ -24,8 +25,7 @@ public class ChatKeyRequestWindow extends JFrame implements ActionListener{
         closeWindowButton.addActionListener(this);
         sendRequestButton = new JButton("Request");
         sendRequestButton.addActionListener(this);
-        String [] encryptionTypes = {"AES","Caesar"};
-        encryptionTypeChooser = new JComboBox(encryptionTypes);
+        encryptionTypeChooser = new JComboBox(connection.getSession().encryptDecrypt.getKnownTypesModel());
         requestStatus = new JTextField("Status...");
         requestStatus.setEditable(false);
         requestMessage = new JTextField("");
@@ -57,6 +57,10 @@ public class ChatKeyRequestWindow extends JFrame implements ActionListener{
         setVisible(true);
     }
 
+    public String getRequestType() {
+        return requestType;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == closeWindowButton){
@@ -65,7 +69,9 @@ public class ChatKeyRequestWindow extends JFrame implements ActionListener{
         if(e.getSource() == sendRequestButton){
             ChatMessage keyRequest = new ChatMessage(requestMessage.getText());
             keyRequest.setMessageType("keyrequest");
-            keyRequest.setKeyRequestType(encryptionTypeChooser.getSelectedItem().toString());
+            final String chosenType = encryptionTypeChooser.getSelectedItem().toString();
+            keyRequest.setKeyRequestType(chosenType);
+            requestType = encryptionTypeChooser.getSelectedItem().toString();
             connection.sendMessage(keyRequest);
             sendRequestButton.setEnabled(false);
             Runnable timer = new Runnable() {
@@ -78,7 +84,7 @@ public class ChatKeyRequestWindow extends JFrame implements ActionListener{
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    if(connection.getConnectedUserKey() == null){
+                    if(!connection.hasConnectedUserKey(chosenType)){
                         requestStatus.setText("Request timeout!");
                     }
                 }
