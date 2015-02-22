@@ -50,7 +50,6 @@ public class ChatMessageEncryptDecrypt {
     public void generateCaesarKey(){
         alphabet = new Character[]{'A', 'B', 'C', 'D', 'E', 'F','1', '2', '3', '4', '5', '6','7', '8', '9', '0'};
         alphaList = Arrays.asList(alphabet);
-        alphabet = new Character[]{'A', 'B', 'C', 'D', 'E', 'F','A', 'B', 'C', 'D', 'E', 'F','1', '2', '3', '4', '5', '6','7', '8', '9', '0','1', '2', '3', '4', '5', '6','7', '8', '9', '0'};
         caesarKey = 3;
         knownTypes.add("caesar");
         knownTypesModel.addElement("caesar");
@@ -79,9 +78,9 @@ public class ChatMessageEncryptDecrypt {
         for(char c : string.toCharArray()){
             index = alphaList.indexOf(c);
             if(index - key < 0){
-                index = alphabet.length-caesarKey;
+                index = alphabet.length + (index-key);
             } else{
-                index -= caesarKey;
+                index -= key;
             }
             decrypted += alphabet[index];
         }
