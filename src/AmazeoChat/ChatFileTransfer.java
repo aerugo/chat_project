@@ -92,9 +92,10 @@ public class ChatFileTransfer {
 
             do{
                 outputStream.write(byteArray, 0, bytesBuffered);
-                int bytesAvailable = fileInputStream.available();
-                int bufferSize = Math.min(maxBufferSize, bytesAvailable); //stackoverflow @sunil
-                byteArray = new byte[bufferSize];
+                //int bytesAvailable = fileInputStream.available();
+                //int bufferSize = Math.min(maxBufferSize, bytesAvailable); //stackoverflow @sunil
+                //byteArray = new byte[bufferSize];
+                byteArray = new byte[512];
                 bytesBuffered = bufferedInputStream.read(byteArray, 0, byteArray.length);
                 totalBytesRead += bytesBuffered;
                 sendWindow.updateProgressBar(totalBytesRead);

@@ -254,12 +254,20 @@ public class ChatConnection extends Thread{
         }catch(IOException e){
             System.out.println( this + " read failed: " + e);
             message = new ChatMessage("System",new Color(255,0,0),"Could not get message...","error");
+        }catch(NullPointerException e){
+            System.out.println( this + " sockey closed: " + e);
+            message = new ChatMessage("System",new Color(255,0,0),"Socket closed","error");
         }
         return message;
     }
 
     public void killConnection(){
         done = true;
+        try {
+            clientSocket.shutdownInput();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getConnectedUserName() {
