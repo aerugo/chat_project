@@ -91,8 +91,7 @@ public class ChatFileTransfer {
             System.out.println("Buffering started...");
 
             do{
-                outputStream.write(byteArray, 0, bytesBuffered);
-
+                outputStream.write(byteArray);
                 if(totalBytesRead + maxBufferSize < fileSize){
                     byteArray = new byte[maxBufferSize];
                 } else {
@@ -108,6 +107,7 @@ public class ChatFileTransfer {
             socket.close();
             serverSocket.close();
             System.out.println("Socket closed");
+
         } catch (NullPointerException e) {
             System.out.println("Array not initialized! " + e);
             disconnect();
@@ -189,7 +189,7 @@ public class ChatFileTransfer {
             int bytesRead = 0;
             tries = 0;
             while (tries<10){
-                bytesRead = inputStream.read(byteArray,0,byteArray.length);
+                bytesRead = inputStream.read(byteArray);
                 totalBytesRead = bytesRead;
                 if(bytesRead != 0) {
                     break;
@@ -213,7 +213,7 @@ public class ChatFileTransfer {
                 } else {
                     byteArray = new byte[fileSize-totalBytesRead];
                 }
-                bytesRead = inputStream.read(byteArray,0,byteArray.length);
+                bytesRead = inputStream.read(byteArray);
                 totalBytesRead += bytesRead;
                 acceptWindow.updateProgressBar(totalBytesRead);
             } while (bytesRead>0);
