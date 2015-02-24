@@ -16,7 +16,7 @@ public class ChatConnectionManagerWindow extends JFrame implements ActionListene
     JTextField requestMessage;
     JLabel chatListLabel;
     JButton addToChat;
-    JComboBox<Object> chatList;
+    JComboBox chatList;
     ChatConnectionManager connectionManager;
     JPanel nestedPanel;
 
