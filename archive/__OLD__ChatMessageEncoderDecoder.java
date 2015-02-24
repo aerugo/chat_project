@@ -1,3 +1,5 @@
+import AmazeoChat.ChatMessage;
+
 import java.awt.*;
 import java.util.Scanner;
 

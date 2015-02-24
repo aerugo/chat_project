@@ -1,3 +1,4 @@
+import AmazeoChat.ChatMessage;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;

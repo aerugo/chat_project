@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;

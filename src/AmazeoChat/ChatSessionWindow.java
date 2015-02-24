@@ -1,8 +1,6 @@
-/**
+package AmazeoChat; /**
  * Created by hugiasgeirsson on 05/02/15.
  */
-
-import javafx.scene.control.Separator;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -235,7 +233,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
 
         if(e.getSource() == requestKeyButton){
             ChatConnection chosenConnection = (ChatConnection) userChooser.getSelectedItem();
-            chosenConnection.sendKeyRequest();
+            new ChatKeyRequestWindow(chosenConnection);
         }
 
     }

@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -67,12 +69,9 @@ public class ChatKeyRequestWindow extends JFrame implements ActionListener{
             this.dispose();
         }
         if(e.getSource() == sendRequestButton){
-            ChatMessage keyRequest = new ChatMessage(requestMessage.getText());
-            keyRequest.setMessageType("keyrequest");
             final String chosenType = encryptionTypeChooser.getSelectedItem().toString();
-            keyRequest.setKeyRequestType(chosenType);
             requestType = encryptionTypeChooser.getSelectedItem().toString();
-            connection.sendMessage(keyRequest);
+            connection.sendKeyRequest(requestMessage.getText(),requestType);
             sendRequestButton.setEnabled(false);
             Runnable timer = new Runnable() {
                 @Override

@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
@@ -14,7 +16,8 @@ public class ChatFileTransfer {
     private ServerSocket serverSocket;
     private File targetFile;
     private ChatConnection connection;
-    private ChatMessage message;
+    private String fileName;
+    private int fileSize;
     private boolean activeTransfer;
     private boolean sendMode;
 
@@ -23,11 +26,12 @@ public class ChatFileTransfer {
         startTimeOutThread();
     }
 
-    public ChatFileTransfer(ChatMessage message, ChatConnection connection){
+    public ChatFileTransfer(String fileName, String messageString, int fileSize, ChatConnection connection){
         this.connection = connection;
-        this.message = message;
+        this.fileName = fileName;
+        this.fileSize = fileSize;
         this.sendMode = false;
-        this.acceptWindow = new ChatFileTransferAcceptWindow(connection, message, this);
+        this.acceptWindow = new ChatFileTransferAcceptWindow(connection, messageString, fileName, fileSize, this);
         startTimeOutThread();
     }
 
@@ -117,7 +121,7 @@ public class ChatFileTransfer {
         fileChooser.setDialogTitle("Output file");
         JFrame jf = new JFrame("Save dialog");      //Stackoverflow @vaxquis
         jf.setAlwaysOnTop(true);
-        fileChooser.setSelectedFile(new File(message.getFileName()));
+        fileChooser.setSelectedFile(new File(fileName));
         System.out.println("File chooser selected file set");
         int userSelection = fileChooser.showSaveDialog(jf);
         jf.dispose();
@@ -134,17 +138,14 @@ public class ChatFileTransfer {
     Runnable acceptFileThread = new Runnable() {
         @Override
         public void run() {
-            acceptFile((int) message.getFileSize(), targetFile, acceptWindow.getReplyMessageString());
+            acceptFile((int) fileSize, targetFile, acceptWindow.getReplyMessageString());
         }
     };
 
     private void acceptFile(int fileSize, File targetFile, String responseMessage) {
         try {
             activeTransfer = true;
-            ChatMessage fileResponse = new ChatMessage(responseMessage,"yes");
-            fileResponse.setFileRequestPort(9822);
-            fileResponse.setMessageType("fileresponse");
-            connection.sendMessage(fileResponse);
+            connection.sendFileResponse(responseMessage, "yes");
             System.out.println("Accept file...");
             System.out.println(connection.getClientSocket().getInetAddress());
 

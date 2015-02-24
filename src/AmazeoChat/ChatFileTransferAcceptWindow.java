@@ -1,8 +1,9 @@
+package AmazeoChat;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 /**
  * Created by hugiasgeirsson on 15/02/15.
@@ -15,12 +16,9 @@ public class ChatFileTransferAcceptWindow extends JFrame implements ActionListen
     private JButton rejectButton;
     private JProgressBar progressBar;
 
-    public ChatFileTransferAcceptWindow(ChatConnection connection, ChatMessage message, ChatFileTransfer fileAccept){
+    public ChatFileTransferAcceptWindow(ChatConnection connection, String requestMessage, String fileName, int fileSize, ChatFileTransfer fileAccept){
 
         this.fileTransfer = fileAccept;
-        String requestMessage = message.getMessageString();
-        String fileName = message.getFileName();
-        long fileSize = message.getFileSize();
 
         setTitle("File transfer from " + connection.getConnectedUserName());
         setResizable(false);

@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -28,7 +30,7 @@ public class ChatMessageXMLAdapter {
         this.session = session;
     }
 
-    // Convert ChatMessage to XML
+    // Convert AmazeoChat.ChatMessage to XML
 
     public String chatMessageToXML(ChatMessage chatMessage){
         String message = chatMessage.getMessageString();
@@ -102,7 +104,7 @@ public class ChatMessageXMLAdapter {
         return hex.toUpperCase();
     }
 
-    // Convert XML to ChatMessage
+    // Convert XML to AmazeoChat.ChatMessage
 
     public void getDocumentFromXML(String XML){
         DocumentBuilderFactory documentBuilder = DocumentBuilderFactory.newInstance();

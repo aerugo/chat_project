@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -77,7 +79,7 @@ public class ChatSession {
     public void sendMessageToAll(ChatMessage message){
         if(!connectionList.isEmpty()){
             for(ChatConnection connection : connectionList){
-                connection.sendMessage(message);
+                connection.sendChatMessageAsXML(message);
             }
         }
     }
@@ -86,7 +88,7 @@ public class ChatSession {
         if(!connectionList.isEmpty()){
             for(ChatConnection connection : connectionList){
                 if(connection != incomingConnection){
-                    connection.sendMessage(message);
+                    connection.sendChatMessageAsXML(message);
                 }
             }
         }

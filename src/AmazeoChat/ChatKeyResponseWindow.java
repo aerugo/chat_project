@@ -1,9 +1,10 @@
+package AmazeoChat;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Created by hugiasgeirsson on 20/02/15.
@@ -58,9 +59,7 @@ public class ChatKeyResponseWindow extends JFrame implements ActionListener{
             if(keyRequestType.equals("caesar")){
                 key = connection.getSession().encryptDecrypt.getKeyString("caesar");
             }
-            ChatMessage keyResponse = new ChatMessage(key);
-            keyResponse.setMessageType("keyresponse");
-            connection.sendMessage(keyResponse);
+            connection.sendKeyResponse(key);
             this.dispose();
         }
     }

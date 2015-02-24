@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -97,9 +99,8 @@ public class ChatFileTransferSendWindow extends JFrame implements ActionListener
 
         if(e.getSource() == sendButton){
             mainConnection.setFileToTransfer(file);
-            ChatMessage fileSendMessage = new ChatMessage(fileName.getText(),
+            mainConnection.sendFileRequest(fileName.getText(),
                     requestMessage.getText(),(int)file.length());
-            mainConnection.sendMessage(fileSendMessage);
             fileSend = new ChatFileTransfer();
             fileSend.setSendWindow(this);
             mainConnection.setFileSend(fileSend);

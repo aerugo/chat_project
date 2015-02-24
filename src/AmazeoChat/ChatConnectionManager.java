@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import java.net.Socket;
 
 /**
@@ -18,7 +20,7 @@ public class ChatConnectionManager {
 
     public void refuseConnection(){
         try{
-            serverConnection.sendMessage(new ChatMessage("Sorry","no"));
+            serverConnection.sendChatResponse("Sorry...", "no");
             serverConnection.killConnection();
         }catch (Exception e){
             System.out.println("Could not close socket! " + e);
@@ -35,14 +37,14 @@ public class ChatConnectionManager {
         serverDaemon.subSessionHashMap.put(chatName, chosenSession);
         chosenSession.addConnection(serverConnection);
         serverConnection.setSession(chosenSession);
-        serverConnection.sendMessage(new ChatMessage("Ok!","yes"));
+        serverConnection.sendChatResponse("Ok!", "yes");
     }
 
     public void connectToActiveSession(String sessionName){
         chosenSession = serverDaemon.subSessionHashMap.get(sessionName);
         chosenSession.addConnection(serverConnection);
         serverConnection.setSession(chosenSession);
-        serverConnection.sendMessage(new ChatMessage("Ok!","yes"));
+        serverConnection.sendChatResponse("Ok!", "yes");
     }
 
     public Object[] getOpenSessions(){

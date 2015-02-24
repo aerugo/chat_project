@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import java.awt.*;
 import java.io.Serializable;
 

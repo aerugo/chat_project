@@ -1,3 +1,5 @@
+package AmazeoChat;
+
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
@@ -30,7 +32,36 @@ public class ChatConnection extends Thread{
         }
     }
 
-    public void sendMessage(ChatMessage message){
+    public void sendFileRequest(String fileName, String requestMessage, int fileSize){
+        sendChatMessageAsXML(new ChatMessage(fileName, requestMessage, fileSize));
+    }
+
+    public void sendFileResponse(String message, String response){
+        ChatMessage fr = new ChatMessage(message, response);
+        fr.setFileRequestPort(9822);
+        fr.setMessageType("fileresponse");
+        sendChatMessageAsXML(fr);
+    }
+
+    public void sendKeyRequest(String message, String type){
+        ChatMessage keyRequest = new ChatMessage(message);
+        keyRequest.setMessageType("keyrequest");
+        keyRequest.setKeyRequestType(type);
+        sendChatMessageAsXML(keyRequest);
+
+    }
+
+    public void sendKeyResponse(String key){
+        ChatMessage keyResponse = new ChatMessage(key);
+        keyResponse.setMessageType("keyresponse");
+        sendChatMessageAsXML(keyResponse);
+    }
+
+    public void sendChatResponse(String message, String response){
+        sendChatMessageAsXML(new ChatMessage("Ok!", "yes"));
+    }
+
+    public void sendChatMessageAsXML(ChatMessage message){
         String xmlMessage = session.xmlAdapter.chatMessageToXML(message);
         System.out.println(xmlMessage);
         try{
@@ -43,10 +74,6 @@ public class ChatConnection extends Thread{
             System.out.println("read failed: " + e);
             session.getWindow().printNotification("read failed: " + e);
         }
-    }
-
-    public void sendKeyRequest(){
-        keyRequestWindow = new ChatKeyRequestWindow(this);
     }
 
     public void run(){
@@ -73,14 +100,14 @@ public class ChatConnection extends Thread{
         //Client request pending
         if(!session.getHostAddress().equals("server")) {
             System.out.println("Client running...");
-            sendMessage(new ChatMessage(session.getUserName() + ": " + session.getConnectRequestMessage(), "request"));
+            sendChatMessageAsXML(new ChatMessage(session.getUserName() + ": " + session.getConnectRequestMessage(), "request"));
             boolean pending = true;
             while (pending) {
 
                 ChatMessage message = getMessageFromBuffer();
 
                 if (message.getRequestAnswer().equals("yes")) {
-                    sendMessage(new ChatMessage(session.getUserName(), new Color(0, 255, 0), "has connected!", "message"));
+                    sendChatMessageAsXML(new ChatMessage(session.getUserName(), new Color(0, 255, 0), "has connected!", "message"));
                 } else {
                     done = true;
                 }
@@ -109,7 +136,10 @@ public class ChatConnection extends Thread{
 
                 if(message.getMessageType().equals("filerequest")) {
                     System.out.println("Filerequest received!");
-                    new ChatFileTransfer(message, this);
+                    new ChatFileTransfer(message.getFileName(),message.getMessageString(),(int)message.getFileSize(), this);
+                    String requestMessage = message.getMessageString();
+                    String fileName = message.getFileName();
+                    long fileSize = message.getFileSize();
                 }
 
                 else if(message.getMessageType().equals("fileresponse")) {
