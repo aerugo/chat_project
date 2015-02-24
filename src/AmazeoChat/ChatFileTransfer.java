@@ -72,13 +72,16 @@ public class ChatFileTransfer {
 
     public void sendFile(File file) {
         try {
+
+            fileSize = (int)file.length();
+
             System.out.println("File send...");
             OutputStream outputStream = socket.getOutputStream();
             System.out.println("Output stream open...");
 
             int maxBufferSize = 512;
             byte[] byteArray = new byte[maxBufferSize];
-            int totalBytesRead = 0;
+            int totalBytesRead;
 
             sendWindow.initiateProgressBar((int)file.length());
 
@@ -92,10 +95,17 @@ public class ChatFileTransfer {
 
             do{
                 outputStream.write(byteArray, 0, bytesBuffered);
+
+                if(totalBytesRead + maxBufferSize < fileSize){
+                    byteArray = new byte[maxBufferSize];
+                } else {
+                    byteArray = new byte[fileSize - totalBytesRead];
+                }
+
                 //int bytesAvailable = fileInputStream.available();
                 //int bufferSize = Math.min(maxBufferSize, bytesAvailable); //stackoverflow @sunil
                 //byteArray = new byte[bufferSize];
-                byteArray = new byte[512];
+                //byteArray = new byte[512];
                 bytesBuffered = bufferedInputStream.read(byteArray, 0, byteArray.length);
                 totalBytesRead += bytesBuffered;
                 sendWindow.updateProgressBar(totalBytesRead);
@@ -188,6 +198,7 @@ public class ChatFileTransfer {
             tries = 0;
             while (tries<10){
                 bytesRead = inputStream.read(byteArray,0,byteArray.length);
+                totalBytesRead = bytesRead;
                 if(bytesRead != 0) {
                     break;
                 }
@@ -205,10 +216,12 @@ public class ChatFileTransfer {
 
             do {
                 bufferedOutputStream.write(byteArray, 0, byteArray.length);
-                //System.out.println("Bytes read total: " + totalBytesRead);
-                byteArray = new byte[maxBufferSize];
+                if(totalBytesRead + maxBufferSize < fileSize){
+                    byteArray = new byte[maxBufferSize];
+                } else {
+                    byteArray = new byte[fileSize-totalBytesRead];
+                }
                 bytesRead = inputStream.read(byteArray,0,byteArray.length);
-                //System.out.println("Bytes read now: " + bytesRead);
                 totalBytesRead += bytesRead;
                 acceptWindow.updateProgressBar(totalBytesRead);
             } while (bytesRead>0);
@@ -232,7 +245,6 @@ public class ChatFileTransfer {
     public void disconnect(){
         try {
             socket.close();
-            activeTransfer = false;
         } catch (IOException e1) {
             e1.printStackTrace();
         } catch (NullPointerException e2){
@@ -245,8 +257,7 @@ public class ChatFileTransfer {
         new Thread(acceptFileThread).start();
     }
 
-    public void startTimeOutThread(){
-        new Thread(timeOutThread).start();
+    public void startTimeOutThread(){new Thread(timeOutThread).start();
     }
 
     public ChatFileTransferSendWindow getSendWindow() {

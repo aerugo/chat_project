@@ -233,7 +233,7 @@ public class ChatSessionWindow extends JFrame implements ActionListener{
 
         if(e.getSource() == requestKeyButton){
             ChatConnection chosenConnection = (ChatConnection) userChooser.getSelectedItem();
-            new ChatKeyRequestWindow(chosenConnection);
+            chosenConnection.openKeyRequestWindow();
         }
 
     }

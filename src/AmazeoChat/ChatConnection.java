@@ -19,7 +19,7 @@ public class ChatConnection extends Thread{
     private PrintWriter out;
     private BufferedReader in;
     private boolean done;
-    ChatKeyRequestWindow keyRequestWindow;
+    private ChatKeyRequestWindow keyRequestWindow;
 
 
     public ChatConnection(Socket clientSocket, ChatSession session){
@@ -49,6 +49,10 @@ public class ChatConnection extends Thread{
         keyRequest.setKeyRequestType(type);
         sendChatMessageAsXML(keyRequest);
 
+    }
+
+    public void openKeyRequestWindow(){
+        keyRequestWindow = new ChatKeyRequestWindow(this);
     }
 
     public void sendKeyResponse(String key){
@@ -137,9 +141,6 @@ public class ChatConnection extends Thread{
                 if(message.getMessageType().equals("filerequest")) {
                     System.out.println("Filerequest received!");
                     new ChatFileTransfer(message.getFileName(),message.getMessageString(),(int)message.getFileSize(), this);
-                    String requestMessage = message.getMessageString();
-                    String fileName = message.getFileName();
-                    long fileSize = message.getFileSize();
                 }
 
                 else if(message.getMessageType().equals("fileresponse")) {
@@ -257,6 +258,7 @@ public class ChatConnection extends Thread{
         }catch(NullPointerException e){
             System.out.println( this + " sockey closed: " + e);
             message = new ChatMessage("System",new Color(255,0,0),"Socket closed","error");
+            killConnection();
         }
         return message;
     }

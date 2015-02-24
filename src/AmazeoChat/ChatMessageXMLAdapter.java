@@ -144,7 +144,7 @@ public class ChatMessageXMLAdapter {
     public String getKeyRequestType() {return messageRootElement.getAttribute("type");}
 
     public String getFileRequestFileName(){
-        return messageRootElement.getAttribute("filename");
+        return messageRootElement.getAttribute("name");
     }
 
     public String getFileRequestFileSize(){
