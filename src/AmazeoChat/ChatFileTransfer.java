@@ -86,11 +86,8 @@ public class ChatFileTransfer {
             sendWindow.initiateProgressBar((int)file.length());
 
             FileInputStream fileInputStream = new FileInputStream(file);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-            int bytesBuffered = bufferedInputStream.read(byteArray, 0, byteArray.length);
-
+            int bytesBuffered = fileInputStream.read(byteArray);
             totalBytesRead = bytesBuffered;
-
             System.out.println("Buffering started...");
 
             do{
@@ -101,12 +98,7 @@ public class ChatFileTransfer {
                 } else {
                     byteArray = new byte[fileSize - totalBytesRead];
                 }
-
-                //int bytesAvailable = fileInputStream.available();
-                //int bufferSize = Math.min(maxBufferSize, bytesAvailable); //stackoverflow @sunil
-                //byteArray = new byte[bufferSize];
-                //byteArray = new byte[512];
-                bytesBuffered = bufferedInputStream.read(byteArray, 0, byteArray.length);
+                bytesBuffered = fileInputStream.read(byteArray);
                 totalBytesRead += bytesBuffered;
                 sendWindow.updateProgressBar(totalBytesRead);
             } while (bytesBuffered>0);
@@ -149,7 +141,7 @@ public class ChatFileTransfer {
     Runnable acceptFileThread = new Runnable() {
         @Override
         public void run() {
-            acceptFile((int) fileSize, targetFile, acceptWindow.getReplyMessageString());
+            acceptFile(fileSize, targetFile, acceptWindow.getReplyMessageString());
         }
     };
 
@@ -189,8 +181,8 @@ public class ChatFileTransfer {
 
             InputStream inputStream = socket.getInputStream();
             System.out.println("Input stream open on " + socket);
+
             FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
-            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
             acceptWindow.initiateProgressBar(fileSize);
 
@@ -215,7 +207,7 @@ public class ChatFileTransfer {
             }
 
             do {
-                bufferedOutputStream.write(byteArray, 0, byteArray.length);
+                fileOutputStream.write(byteArray);
                 if(totalBytesRead + maxBufferSize < fileSize){
                     byteArray = new byte[maxBufferSize];
                 } else {
@@ -226,8 +218,8 @@ public class ChatFileTransfer {
                 acceptWindow.updateProgressBar(totalBytesRead);
             } while (bytesRead>0);
 
-            bufferedOutputStream.flush();
-            bufferedOutputStream.close();
+            fileOutputStream.flush();
+            fileOutputStream.close();
             socket.close();
             acceptWindow.dispose();
 
